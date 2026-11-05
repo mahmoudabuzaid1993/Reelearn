@@ -1,0 +1,56 @@
+[package]
+name = "reelearn-api"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Reelearn HTTP API (axum): auth, learner, manager, admin, studio, webhooks."
+
+[lib]
+name = "reelearn_api"
+path = "src/lib.rs"
+
+[[bin]]
+name = "reelearn-api"
+path = "src/main.rs"
+
+[dependencies]
+reelearn-domain = { workspace = true, features = ["sqlx"] }
+reelearn-db = { workspace = true }
+anyhow = { workspace = true }
+async-stream = { workspace = true }
+aes-gcm = { workspace = true }
+argon2 = { workspace = true }
+axum = { workspace = true }
+base64 = { workspace = true }
+bytes = { workspace = true }
+chrono = { workspace = true }
+chrono-tz = { workspace = true }
+csv = { workspace = true }
+dotenvy = { workspace = true }
+futures = { workspace = true }
+hex = { workspace = true }
+hmac = { workspace = true }
+http-body-util = { workspace = true }
+jsonwebtoken = { workspace = true }
+rand = { workspace = true }
+redis = { workspace = true }
+reqwest = { workspace = true }
+rusty-s3 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+url = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+http-body-util = { workspace = true }
+tower = { workspace = true }

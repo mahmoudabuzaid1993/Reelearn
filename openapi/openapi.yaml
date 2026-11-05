@@ -1,0 +1,1604 @@
+openapi: 3.1.0
+info:
+  title: Reelearn API
+  version: 1.0.0
+  description: |
+    Contract between the Reelearn clients (web console, Flutter app, WhatsApp bot) and the Rust API.
+    All tenant-scoped requests carry a Bearer access token whose claims include `tenant_id`, `sub` (user id) and `role`.
+    Errors are RFC 9457 problem+json. List endpoints use cursor pagination. Mutating learner endpoints accept an
+    `Idempotency-Key` header and replay the original response for 24 h.
+servers:
+  - url: http://localhost:8080/v1
+security:
+  - bearer: []
+tags:
+  - name: auth
+  - name: me
+  - name: learn
+  - name: manager
+  - name: sme
+  - name: tenants
+  - name: people
+  - name: topics
+  - name: studio
+  - name: reels
+  - name: reports
+  - name: settings
+  - name: webhooks
+  - name: system
+
+paths:
+  # ------------------------------------------------------------------ system
+  /health:
+    get:
+      tags: [system]
+      security: []
+      summary: Liveness and dependency check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, enum: [ok, degraded] }
+                  postgres: { type: boolean }
+                  redis: { type: boolean }
+                  version: { type: string }
+
+  # ------------------------------------------------------------------ auth
+  /auth/tenant/lookup:
+    post:
+      tags: [auth]
+      security: []
+      summary: Resolve a company space from a slug or an invite token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                slug: { type: string }
+                invite_token: { type: string }
+      responses:
+        "200":
+          description: Tenant found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TenantPublic" }
+        "404": { $ref: "#/components/responses/Problem" }
+  /auth/otp/request:
+    post:
+      tags: [auth]
+      security: []
+      summary: Send a one-time code by WhatsApp (learners) or email (admins)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tenant_slug]
+              properties:
+                tenant_slug: { type: string }
+                phone: { type: string, description: "E.164 or local Saudi format; normalised server-side" }
+                email: { type: string, format: email }
+      responses:
+        "200":
+          description: Challenge created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [challenge_id, channel, expires_in_seconds]
+                properties:
+                  challenge_id: { type: string, format: uuid }
+                  channel: { type: string, enum: [whatsapp, sms, email] }
+                  expires_in_seconds: { type: integer }
+        "404": { $ref: "#/components/responses/Problem" }
+        "429": { $ref: "#/components/responses/Problem" }
+  /auth/otp/verify:
+    post:
+      tags: [auth]
+      security: []
+      summary: Exchange a code for tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [challenge_id, code, device]
+              properties:
+                challenge_id: { type: string, format: uuid }
+                code: { type: string, minLength: 4, maxLength: 8 }
+                device: { $ref: "#/components/schemas/DeviceInfo" }
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenPair" }
+        "400": { $ref: "#/components/responses/Problem" }
+        "423": { description: "Too many attempts, locked", content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } } }
+  /auth/refresh:
+    post:
+      tags: [auth]
+      security: []
+      summary: Rotate a refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        "200":
+          description: New pair
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenPair" }
+        "401": { $ref: "#/components/responses/Problem" }
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: Revoke this session (or all with all_devices)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                all_devices: { type: boolean, default: false }
+      responses:
+        "204": { description: Revoked }
+
+  # ------------------------------------------------------------------ me
+  /me:
+    get:
+      tags: [me]
+      summary: The signed-in user
+      responses:
+        "200":
+          description: Profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+    patch:
+      tags: [me]
+      summary: Update preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MePatch" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+  /me/privacy:
+    get:
+      tags: [me]
+      summary: What the company can and cannot see about this user
+      responses:
+        "200":
+          description: Privacy statement, localised
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  manager_sees: { type: array, items: { type: string } }
+                  hr_sees: { type: array, items: { type: string } }
+                  nobody_sees: { type: array, items: { type: string } }
+  /me/export:
+    post:
+      tags: [me]
+      summary: Request a personal data export (async, delivered by WhatsApp or email)
+      responses:
+        "202":
+          description: Export queued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Export" }
+
+  # ------------------------------------------------------------------ learn
+  /me/today:
+    get:
+      tags: [learn]
+      summary: Today's plan (the minute), materialised and cached
+      responses:
+        "200":
+          description: Plan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DailyPlan" }
+  /me/watch:
+    post:
+      tags: [learn]
+      summary: Record a reel play (on arrival and at 90 % completion)
+      parameters: [ { $ref: "#/components/parameters/IdempotencyKey" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reel_id, watched_ms, completed]
+              properties:
+                plan_item_id: { type: string, format: uuid }
+                reel_id: { type: string, format: uuid }
+                watched_ms: { type: integer, minimum: 0 }
+                completed: { type: boolean }
+                channel: { $ref: "#/components/schemas/Channel" }
+      responses:
+        "202": { description: Recorded }
+  /me/answers:
+    post:
+      tags: [learn]
+      summary: Answer a recall question
+      parameters: [ { $ref: "#/components/parameters/IdempotencyKey" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question_id, chosen_key]
+              properties:
+                plan_item_id: { type: string, format: uuid }
+                question_id: { type: string, format: uuid }
+                chosen_key: { type: string }
+                response_ms: { type: integer, minimum: 0 }
+                channel: { $ref: "#/components/schemas/Channel" }
+      responses:
+        "200":
+          description: Outcome (never a "wrong" flag on its own; always the right answer)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnswerOutcome" }
+        "409": { description: Already answered in this plan, content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } } }
+  /me/progress:
+    get:
+      tags: [learn]
+      summary: Personal progress (what you remember)
+      responses:
+        "200":
+          description: Progress
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Progress" }
+  /me/library:
+    get:
+      tags: [learn]
+      summary: Reels this learner may browse (seen or published to their groups)
+      parameters:
+        - { name: topic_id, in: query, schema: { type: string, format: uuid } }
+        - { name: q, in: query, schema: { type: string } }
+        - { name: saved, in: query, schema: { type: boolean } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200":
+          description: Page of reels
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Page"
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: "#/components/schemas/ReelCard" } }
+  /me/saved/{reel_id}:
+    put:
+      tags: [learn]
+      summary: Save a reel
+      parameters: [ { $ref: "#/components/parameters/ReelId" } ]
+      responses: { "204": { description: Saved } }
+    delete:
+      tags: [learn]
+      summary: Unsave a reel
+      parameters: [ { $ref: "#/components/parameters/ReelId" } ]
+      responses: { "204": { description: Removed } }
+  /me/reel-requests:
+    post:
+      tags: [learn]
+      summary: Ask for a reel (anonymous to the manager)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string, minLength: 3, maxLength: 500 }
+      responses: { "201": { description: Created } }
+  /reels/{reel_id}:
+    get:
+      tags: [learn]
+      summary: A reel for playback in the learner's language, with signed media URLs
+      parameters:
+        - { $ref: "#/components/parameters/ReelId" }
+        - { name: lang, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Playable reel
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReelPlayable" }
+        "404": { $ref: "#/components/responses/Problem" }
+
+  # ------------------------------------------------------------------ manager
+  /manager/team:
+    get:
+      tags: [manager]
+      summary: Readiness per team member per topic. No scores, no answers.
+      responses:
+        "200":
+          description: Team readiness
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TeamReadiness" }
+  /manager/nudges:
+    post:
+      tags: [manager]
+      summary: Send a reminder (max one per person per day)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_ids]
+              properties:
+                user_ids: { type: array, items: { type: string, format: uuid }, maxItems: 200 }
+      responses:
+        "202":
+          description: Queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  queued: { type: integer }
+                  skipped_already_nudged: { type: integer }
+  /manager/reel-requests:
+    get:
+      tags: [manager]
+      summary: Anonymised "ask for a reel" requests from the team
+      responses:
+        "200":
+          description: Requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: string, format: uuid }
+                    text: { type: string }
+                    votes: { type: integer }
+                    status: { type: string }
+
+  # ------------------------------------------------------------------ sme
+  /sme/recordings:
+    post:
+      tags: [sme]
+      summary: Start a phone recording upload (pre-signed PUT)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [topic_id, mime, bytes, consent_confirmed]
+              properties:
+                topic_id: { type: string, format: uuid }
+                title: { type: string }
+                mime: { type: string }
+                bytes: { type: integer, maximum: 209715200 }
+                consent_confirmed: { type: boolean }
+      responses:
+        "201":
+          description: Upload slot
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UploadSlot" }
+  /sme/recordings/{recording_id}/submit:
+    post:
+      tags: [sme]
+      summary: Mark the upload complete; creates a draft reel in the studio review queue
+      parameters: [ { name: recording_id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        "201":
+          description: Draft reel
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Reel" }
+
+  # ------------------------------------------------------------------ tenants
+  /tenants:
+    post:
+      tags: [tenants]
+      security: []
+      summary: Create a workspace (A01). Sends an OTP to the admin.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [company_name, slug, admin_name, admin_email, default_language, region]
+              properties:
+                company_name: { type: string }
+                slug: { type: string, pattern: "^[a-z0-9][a-z0-9-]{1,62}$" }
+                admin_name: { type: string }
+                admin_email: { type: string, format: email }
+                admin_phone: { type: string }
+                default_language: { type: string, enum: [ar, en] }
+                region: { $ref: "#/components/schemas/Region" }
+                sector: { type: string }
+      responses:
+        "201":
+          description: Created; verify with /auth/otp/verify
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tenant: { $ref: "#/components/schemas/TenantPublic" }
+                  challenge_id: { type: string, format: uuid }
+        "409": { $ref: "#/components/responses/Problem" }
+  /admin/tenant:
+    get:
+      tags: [tenants]
+      summary: Workspace settings
+      responses:
+        "200": { description: Tenant, content: { application/json: { schema: { $ref: "#/components/schemas/Tenant" } } } }
+    patch:
+      tags: [tenants]
+      summary: Update workspace settings (delivery windows, prayer/Ramadan, languages, cadence)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TenantPatch" }
+      responses:
+        "200": { description: Tenant, content: { application/json: { schema: { $ref: "#/components/schemas/Tenant" } } } }
+  /admin/dashboard:
+    get:
+      tags: [tenants]
+      summary: A04 dashboard (cached 60 s)
+      parameters: [ { $ref: "#/components/parameters/Range" } ]
+      responses:
+        "200": { description: Dashboard, content: { application/json: { schema: { $ref: "#/components/schemas/Dashboard" } } } }
+
+  # ------------------------------------------------------------------ people
+  /admin/users:
+    get:
+      tags: [people]
+      summary: List people
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: role, in: query, schema: { $ref: "#/components/schemas/Role" } }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/UserStatus" } }
+        - { name: group_id, in: query, schema: { type: string, format: uuid } }
+        - { name: language, in: query, schema: { type: string } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200":
+          description: Page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Page"
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: "#/components/schemas/User" } }
+    post:
+      tags: [people]
+      summary: Invite one person
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserCreate" }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
+        "409": { $ref: "#/components/responses/Problem" }
+  /admin/users/import:
+    post:
+      tags: [people]
+      summary: Bulk import from CSV (preview with dry_run=true)
+      parameters: [ { name: dry_run, in: query, schema: { type: boolean, default: false } } ]
+      requestBody:
+        required: true
+        content:
+          text/csv:
+            schema: { type: string }
+      responses:
+        "200":
+          description: Import report
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportReport" }
+  /admin/users/{user_id}:
+    get:
+      tags: [people]
+      parameters: [ { $ref: "#/components/parameters/UserId" } ]
+      responses:
+        "200": { description: User, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
+    patch:
+      tags: [people]
+      parameters: [ { $ref: "#/components/parameters/UserId" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserPatch" }
+      responses:
+        "200": { description: User, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
+  /admin/groups:
+    get:
+      tags: [people]
+      responses:
+        "200": { description: Groups, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Group" } } } } }
+    post:
+      tags: [people]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                kind: { type: string, enum: [team, location, role, custom] }
+      responses:
+        "201": { description: Group, content: { application/json: { schema: { $ref: "#/components/schemas/Group" } } } }
+  /admin/groups/{group_id}/members:
+    put:
+      tags: [people]
+      summary: Replace the member list
+      parameters: [ { name: group_id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_ids]
+              properties:
+                user_ids: { type: array, items: { type: string, format: uuid } }
+      responses: { "204": { description: Replaced } }
+
+  # ------------------------------------------------------------------ topics
+  /admin/topics:
+    get:
+      tags: [topics]
+      responses:
+        "200": { description: Topics, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Topic" } } } } }
+    post:
+      tags: [topics]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TopicCreate" }
+      responses:
+        "201": { description: Topic, content: { application/json: { schema: { $ref: "#/components/schemas/Topic" } } } }
+  /admin/topics/{topic_id}:
+    patch:
+      tags: [topics]
+      parameters: [ { $ref: "#/components/parameters/TopicId" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TopicCreate" }
+      responses:
+        "200": { description: Topic, content: { application/json: { schema: { $ref: "#/components/schemas/Topic" } } } }
+  /admin/topics/{topic_id}/assignments:
+    get:
+      tags: [topics]
+      parameters: [ { $ref: "#/components/parameters/TopicId" } ]
+      responses:
+        "200": { description: Assignments, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Assignment" } } } } }
+    put:
+      tags: [topics]
+      summary: Replace the assignment matrix for this topic
+      parameters: [ { $ref: "#/components/parameters/TopicId" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items: { $ref: "#/components/schemas/AssignmentWrite" }
+      responses:
+        "200": { description: Assignments, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Assignment" } } } } }
+
+  # ------------------------------------------------------------------ studio
+  /admin/uploads:
+    post:
+      tags: [studio]
+      summary: Pre-signed upload slot for any file (source, logo, recording)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [filename, mime, bytes]
+              properties:
+                filename: { type: string }
+                mime: { type: string }
+                bytes: { type: integer, maximum: 209715200 }
+                sha256: { type: string }
+      responses:
+        "201": { description: Slot, content: { application/json: { schema: { $ref: "#/components/schemas/UploadSlot" } } } }
+  /admin/sources:
+    get:
+      tags: [studio]
+      parameters: [ { $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" } ]
+      responses:
+        "200":
+          description: Page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Page"
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: "#/components/schemas/Source" } }
+    post:
+      tags: [studio]
+      summary: Register a source (S01) and start extraction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SourceCreate" }
+      responses:
+        "201": { description: Source, content: { application/json: { schema: { $ref: "#/components/schemas/Source" } } } }
+        "422": { $ref: "#/components/responses/Problem" }
+  /admin/sources/{source_id}:
+    get:
+      tags: [studio]
+      parameters: [ { $ref: "#/components/parameters/SourceId" } ]
+      responses:
+        "200": { description: Source with extraction summary, content: { application/json: { schema: { $ref: "#/components/schemas/Source" } } } }
+  /admin/sources/{source_id}/moments:
+    get:
+      tags: [studio]
+      summary: AI-found moments in a podcast or talk (S05)
+      parameters: [ { $ref: "#/components/parameters/SourceId" } ]
+      responses:
+        "200": { description: Moments, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Moment" } } } } }
+  /admin/sources/{source_id}/moments/{moment_id}/cut:
+    post:
+      tags: [studio]
+      summary: Cut a moment into a draft reel
+      parameters:
+        - { $ref: "#/components/parameters/SourceId" }
+        - { name: moment_id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [topic_id, speaker_consent]
+              properties:
+                topic_id: { type: string, format: uuid }
+                start_ms: { type: integer }
+                end_ms: { type: integer }
+                title: { type: string }
+                speaker_consent: { type: boolean }
+      responses:
+        "201": { description: Draft reel, content: { application/json: { schema: { $ref: "#/components/schemas/Reel" } } } }
+  /admin/generation-jobs/quote:
+    post:
+      tags: [studio]
+      summary: Price a generation before running it (S02)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GenerationRequest" }
+      responses:
+        "200":
+          description: Quote
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cost_credits: { type: integer }
+                  credits_available: { type: integer }
+                  estimated_minutes: { type: integer }
+                  breakdown: { type: array, items: { type: object, properties: { step: { type: string }, credits: { type: integer } } } }
+  /admin/generation-jobs:
+    get:
+      tags: [studio]
+      parameters: [ { $ref: "#/components/parameters/Cursor" }, { $ref: "#/components/parameters/Limit" } ]
+      responses:
+        "200":
+          description: Page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Page"
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: "#/components/schemas/GenerationJob" } }
+    post:
+      tags: [studio]
+      summary: Start generation (S02 → S03)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GenerationRequest" }
+      responses:
+        "202": { description: Queued, content: { application/json: { schema: { $ref: "#/components/schemas/GenerationJob" } } } }
+        "402": { description: Not enough credits, content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } } }
+  /admin/generation-jobs/{job_id}:
+    get:
+      tags: [studio]
+      parameters: [ { $ref: "#/components/parameters/JobId" } ]
+      responses:
+        "200": { description: Job with steps, content: { application/json: { schema: { $ref: "#/components/schemas/GenerationJob" } } } }
+  /admin/generation-jobs/{job_id}/events:
+    get:
+      tags: [studio]
+      summary: Server-sent progress events (S03)
+      parameters: [ { $ref: "#/components/parameters/JobId" } ]
+      responses:
+        "200":
+          description: text/event-stream of GenerationJob snapshots
+          content:
+            text/event-stream:
+              schema: { type: string }
+  /admin/generation-jobs/{job_id}/retry:
+    post:
+      tags: [studio]
+      summary: Retry the failed step only
+      parameters: [ { $ref: "#/components/parameters/JobId" } ]
+      responses:
+        "202": { description: Queued, content: { application/json: { schema: { $ref: "#/components/schemas/GenerationJob" } } } }
+  /admin/generation-jobs/{job_id}/storyboard:
+    get:
+      tags: [studio]
+      summary: The job's reels with script, visual, question (S04)
+      parameters: [ { $ref: "#/components/parameters/JobId" } ]
+      responses:
+        "200": { description: Reels, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Reel" } } } } }
+
+  # ------------------------------------------------------------------ reels
+  /admin/reels:
+    get:
+      tags: [reels]
+      summary: Library (R02)
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/ReelStatus" } }
+        - { name: topic_id, in: query, schema: { type: string, format: uuid } }
+        - { name: language, in: query, schema: { type: string } }
+        - { name: kind, in: query, schema: { $ref: "#/components/schemas/ReelKind" } }
+        - { name: q, in: query, schema: { type: string } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200":
+          description: Page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Page"
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: "#/components/schemas/ReelListItem" } }
+  /admin/reels/{reel_id}:
+    get:
+      tags: [reels]
+      parameters: [ { $ref: "#/components/parameters/ReelId" } ]
+      responses:
+        "200": { description: Reel, content: { application/json: { schema: { $ref: "#/components/schemas/Reel" } } } }
+    patch:
+      tags: [reels]
+      summary: Edit in the reel editor (S06). Editing a published reel bumps the version and returns it to review.
+      parameters: [ { $ref: "#/components/parameters/ReelId" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReelPatch" }
+      responses:
+        "200": { description: Reel, content: { application/json: { schema: { $ref: "#/components/schemas/Reel" } } } }
+  /admin/reels/{reel_id}/regenerate:
+    post:
+      tags: [reels]
+      summary: Regenerate one reel's visual and/or voice (costs credits, quoted in the response)
+      parameters: [ { $ref: "#/components/parameters/ReelId" } ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                what: { type: array, items: { type: string, enum: [visual, voice, script, question] } }
+      responses:
+        "202": { description: Job, content: { application/json: { schema: { $ref: "#/components/schemas/GenerationJob" } } } }
+  /admin/reels/{reel_id}/variants:
+    post:
+      tags: [reels]
+      summary: Add language variants (dub + captions)
+      parameters: [ { $ref: "#/components/parameters/ReelId" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [languages]
+              properties:
+                languages: { type: array, items: { type: string } }
+      responses:
+        "202": { description: Job, content: { application/json: { schema: { $ref: "#/components/schemas/GenerationJob" } } } }
+  /admin/reels/{reel_id}/submit-review:
+    post:
+      tags: [reels]
+      parameters: [ { $ref: "#/components/parameters/ReelId" } ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sme_user_id: { type: string, format: uuid }
+      responses:
+        "200": { description: Reel, content: { application/json: { schema: { $ref: "#/components/schemas/Reel" } } } }
+  /admin/reels/{reel_id}/approvals:
+    post:
+      tags: [reels]
+      summary: Record an L&D or SME decision (role derived from the caller)
+      parameters: [ { $ref: "#/components/parameters/ReelId" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approved, changes_requested, rejected] }
+                comment: { type: string }
+      responses:
+        "200": { description: Reel, content: { application/json: { schema: { $ref: "#/components/schemas/Reel" } } } }
+  /admin/reels/{reel_id}/publish:
+    post:
+      tags: [reels]
+      summary: Publish to groups (S07). Fails with 409 unless both approvals exist for this version.
+      parameters: [ { $ref: "#/components/parameters/ReelId" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [group_ids]
+              properties:
+                group_ids: { type: array, items: { type: string, format: uuid }, minItems: 1 }
+                starts_on: { type: string, format: date }
+                compliance_tag: { type: string }
+      responses:
+        "200": { description: Reel, content: { application/json: { schema: { $ref: "#/components/schemas/Reel" } } } }
+        "409": { $ref: "#/components/responses/Problem" }
+  /admin/reels/{reel_id}/archive:
+    post:
+      tags: [reels]
+      parameters: [ { $ref: "#/components/parameters/ReelId" } ]
+      responses:
+        "200": { description: Reel, content: { application/json: { schema: { $ref: "#/components/schemas/Reel" } } } }
+
+  # ------------------------------------------------------------------ reports
+  /admin/reports/overview:
+    get:
+      tags: [reports]
+      parameters: [ { $ref: "#/components/parameters/Range" } ]
+      responses:
+        "200": { description: Overview, content: { application/json: { schema: { $ref: "#/components/schemas/ReportOverview" } } } }
+  /admin/reports/by-topic:
+    get:
+      tags: [reports]
+      parameters: [ { $ref: "#/components/parameters/Range" } ]
+      responses:
+        "200": { description: Rows, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ReportRow" } } } } }
+  /admin/reports/by-group:
+    get:
+      tags: [reports]
+      parameters: [ { $ref: "#/components/parameters/Range" } ]
+      responses:
+        "200": { description: Rows, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ReportRow" } } } } }
+  /admin/exports:
+    get:
+      tags: [reports]
+      responses:
+        "200": { description: Exports, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Export" } } } } }
+    post:
+      tags: [reports]
+      summary: Build an HRDF evidence pack for a period (async)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, period_start, period_end]
+              properties:
+                kind: { type: string, enum: [hrdf_evidence] }
+                period_start: { type: string, format: date }
+                period_end: { type: string, format: date }
+      responses:
+        "202": { description: Export, content: { application/json: { schema: { $ref: "#/components/schemas/Export" } } } }
+  /admin/exports/{export_id}/download:
+    get:
+      tags: [reports]
+      parameters: [ { name: export_id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      responses:
+        "200":
+          description: Signed URL
+          content:
+            application/json:
+              schema: { type: object, properties: { url: { type: string }, expires_at: { type: string, format: date-time } } }
+
+  # ------------------------------------------------------------------ settings
+  /admin/integrations:
+    get:
+      tags: [settings]
+      responses:
+        "200": { description: Integrations, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Integration" } } } } }
+  /admin/integrations/{kind}:
+    put:
+      tags: [settings]
+      summary: Connect or update a provider. Secrets are write-only.
+      parameters: [ { name: kind, in: path, required: true, schema: { $ref: "#/components/schemas/IntegrationKind" } } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, additionalProperties: true }
+      responses:
+        "200": { description: Integration, content: { application/json: { schema: { $ref: "#/components/schemas/Integration" } } } }
+  /admin/integrations/{kind}/test:
+    post:
+      tags: [settings]
+      parameters: [ { name: kind, in: path, required: true, schema: { $ref: "#/components/schemas/IntegrationKind" } } ]
+      responses:
+        "200": { description: Result, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, message: { type: string } } } } } }
+  /admin/audit:
+    get:
+      tags: [settings]
+      parameters:
+        - { name: entity, in: query, schema: { type: string } }
+        - { name: entity_id, in: query, schema: { type: string, format: uuid } }
+        - { $ref: "#/components/parameters/Cursor" }
+        - { $ref: "#/components/parameters/Limit" }
+      responses:
+        "200":
+          description: Page
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/Page"
+                  - type: object
+                    properties:
+                      items: { type: array, items: { $ref: "#/components/schemas/AuditEntry" } }
+
+  # ------------------------------------------------------------------ webhooks
+  /webhooks/whatsapp:
+    post:
+      tags: [webhooks]
+      security: []
+      summary: Inbound WhatsApp messages and delivery receipts (signature-verified)
+      responses: { "200": { description: Accepted } }
+  /webhooks/providers/{provider}:
+    post:
+      tags: [webhooks]
+      security: []
+      summary: Generation provider callbacks (signature-verified)
+      parameters: [ { name: provider, in: path, required: true, schema: { type: string, enum: [higgsfield, veo, voice, asr] } } ]
+      responses: { "200": { description: Accepted } }
+
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: false, schema: { type: string, maxLength: 128 } }
+    Cursor: { name: cursor, in: query, schema: { type: string } }
+    Limit: { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 25 } }
+    Range: { name: range, in: query, schema: { type: string, enum: [7d, 30d, 90d, 12m], default: 30d } }
+    ReelId: { name: reel_id, in: path, required: true, schema: { type: string, format: uuid } }
+    UserId: { name: user_id, in: path, required: true, schema: { type: string, format: uuid } }
+    TopicId: { name: topic_id, in: path, required: true, schema: { type: string, format: uuid } }
+    SourceId: { name: source_id, in: path, required: true, schema: { type: string, format: uuid } }
+    JobId: { name: job_id, in: path, required: true, schema: { type: string, format: uuid } }
+  responses:
+    Problem:
+      description: Error
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        request_id: { type: string }
+        errors: { type: array, items: { type: object, properties: { field: { type: string }, message: { type: string } } } }
+    Page:
+      type: object
+      required: [items]
+      properties:
+        next_cursor: { type: [string, "null"] }
+    Region: { type: string, enum: [ksa, uae, eu] }
+    Role: { type: string, enum: [admin, manager, sme, learner] }
+    UserStatus: { type: string, enum: [invited, active, paused, deactivated] }
+    Channel: { type: string, enum: [app, whatsapp, both, teams] }
+    DeliverySlot: { type: string, enum: [shift_start, break, shift_end] }
+    ReelKind: { type: string, enum: [ai_avatar, motion, broll, podcast_cut, sme_recorded] }
+    ReelStatus: { type: string, enum: [draft, in_review, approved, published, archived, rejected] }
+    IntegrationKind: { type: string, enum: [hris_jisr, hris_bayzat, sso_entra, whatsapp, teams, ai_muse, ai_claude, ai_higgsfield, ai_veo, voice, asr, storage] }
+    DeviceInfo:
+      type: object
+      required: [device_id, platform]
+      properties:
+        device_id: { type: string }
+        platform: { type: string, enum: [ios, android, web] }
+        app_version: { type: string }
+        push_token: { type: string }
+    TokenPair:
+      type: object
+      required: [access_token, refresh_token, expires_in, user]
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        expires_in: { type: integer, description: seconds }
+        user: { $ref: "#/components/schemas/Me" }
+    TenantPublic:
+      type: object
+      required: [id, slug, name, languages]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        logo_url: { type: [string, "null"] }
+        languages: { type: array, items: { type: string } }
+        region: { $ref: "#/components/schemas/Region" }
+    Tenant:
+      allOf:
+        - $ref: "#/components/schemas/TenantPublic"
+        - type: object
+          properties:
+            default_language: { type: string }
+            timezone: { type: string }
+            credits: { type: integer }
+            settings: { $ref: "#/components/schemas/TenantSettings" }
+    TenantSettings:
+      type: object
+      properties:
+        reels_per_day: { type: integer, default: 2 }
+        max_reviews_per_day: { type: integer, default: 1 }
+        delivery_windows: { type: array, items: { type: object, properties: { days: { type: array, items: { type: string } }, start: { type: string }, end: { type: string } } } }
+        prayer_aware: { type: boolean, default: true }
+        ramadan_aware: { type: boolean, default: true }
+        weekend_days: { type: array, items: { type: string }, default: [fri, sat] }
+        retention_months: { type: integer, default: 36 }
+        streak_freezes_per_week: { type: integer, default: 1 }
+    TenantPatch:
+      type: object
+      properties:
+        name: { type: string }
+        languages: { type: array, items: { type: string } }
+        default_language: { type: string }
+        timezone: { type: string }
+        settings: { $ref: "#/components/schemas/TenantSettings" }
+    Me:
+      type: object
+      required: [id, tenant, role, full_name, preferred_language, ui_language, delivery_channel, delivery_slot]
+      properties:
+        id: { type: string, format: uuid }
+        tenant: { $ref: "#/components/schemas/TenantPublic" }
+        role: { $ref: "#/components/schemas/Role" }
+        full_name: { type: string }
+        first_name: { type: string }
+        phone_e164: { type: [string, "null"] }
+        email: { type: [string, "null"] }
+        preferred_language: { type: string }
+        ui_language: { type: string }
+        delivery_channel: { $ref: "#/components/schemas/Channel" }
+        delivery_slot: { $ref: "#/components/schemas/DeliverySlot" }
+        captions_on: { type: boolean }
+        reminders_on: { type: boolean }
+        extra_reels_on: { type: boolean }
+        paused_until: { type: [string, "null"], format: date }
+        is_first_open: { type: boolean }
+    MePatch:
+      type: object
+      properties:
+        preferred_language: { type: string }
+        ui_language: { type: string }
+        delivery_channel: { $ref: "#/components/schemas/Channel" }
+        delivery_slot: { $ref: "#/components/schemas/DeliverySlot" }
+        captions_on: { type: boolean }
+        reminders_on: { type: boolean }
+        extra_reels_on: { type: boolean }
+        paused_until: { type: [string, "null"], format: date }
+        push_token: { type: string }
+    User:
+      type: object
+      required: [id, role, status, full_name, preferred_language, delivery_channel, groups]
+      properties:
+        id: { type: string, format: uuid }
+        role: { $ref: "#/components/schemas/Role" }
+        status: { $ref: "#/components/schemas/UserStatus" }
+        full_name: { type: string }
+        phone_e164: { type: [string, "null"] }
+        email: { type: [string, "null"] }
+        employee_no: { type: [string, "null"] }
+        preferred_language: { type: string }
+        manager_id: { type: [string, "null"], format: uuid }
+        location: { type: [string, "null"] }
+        job_title: { type: [string, "null"] }
+        delivery_channel: { $ref: "#/components/schemas/Channel" }
+        delivery_slot: { $ref: "#/components/schemas/DeliverySlot" }
+        groups: { type: array, items: { $ref: "#/components/schemas/GroupRef" } }
+        last_seen_at: { type: [string, "null"], format: date-time }
+        created_at: { type: string, format: date-time }
+    UserCreate:
+      type: object
+      required: [full_name, role]
+      properties:
+        full_name: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        phone: { type: string }
+        email: { type: string, format: email }
+        employee_no: { type: string }
+        preferred_language: { type: string }
+        manager_id: { type: string, format: uuid }
+        location: { type: string }
+        job_title: { type: string }
+        delivery_channel: { $ref: "#/components/schemas/Channel" }
+        delivery_slot: { $ref: "#/components/schemas/DeliverySlot" }
+        group_ids: { type: array, items: { type: string, format: uuid } }
+        send_invite: { type: boolean, default: true }
+    UserPatch:
+      type: object
+      properties:
+        full_name: { type: string }
+        role: { $ref: "#/components/schemas/Role" }
+        status: { $ref: "#/components/schemas/UserStatus" }
+        preferred_language: { type: string }
+        manager_id: { type: [string, "null"], format: uuid }
+        location: { type: string }
+        job_title: { type: string }
+        delivery_channel: { $ref: "#/components/schemas/Channel" }
+        delivery_slot: { $ref: "#/components/schemas/DeliverySlot" }
+        group_ids: { type: array, items: { type: string, format: uuid } }
+    ImportReport:
+      type: object
+      properties:
+        total_rows: { type: integer }
+        created: { type: integer }
+        updated: { type: integer }
+        skipped: { type: integer }
+        errors: { type: array, items: { type: object, properties: { row: { type: integer }, message: { type: string } } } }
+        dry_run: { type: boolean }
+    Group:
+      type: object
+      required: [id, name, kind, member_count]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        kind: { type: string }
+        member_count: { type: integer }
+    GroupRef:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+    Topic:
+      type: object
+      required: [id, slug, name, status, reel_counts]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        name_ar: { type: [string, "null"] }
+        description: { type: [string, "null"] }
+        compliance_tag: { type: [string, "null"] }
+        is_mandatory: { type: boolean }
+        status: { type: string }
+        reel_counts: { type: object, properties: { published: { type: integer }, in_review: { type: integer }, draft: { type: integer } } }
+        recall_pct: { type: [integer, "null"] }
+    TopicCreate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        name_ar: { type: string }
+        slug: { type: string }
+        description: { type: string }
+        compliance_tag: { type: string }
+        is_mandatory: { type: boolean }
+    Assignment:
+      type: object
+      required: [id, topic_id, group, reels_per_day, channel, is_mandatory, starts_on]
+      properties:
+        id: { type: string, format: uuid }
+        topic_id: { type: string, format: uuid }
+        group: { $ref: "#/components/schemas/GroupRef" }
+        reels_per_day: { type: integer }
+        channel: { $ref: "#/components/schemas/Channel" }
+        is_mandatory: { type: boolean }
+        starts_on: { type: string, format: date }
+        ends_on: { type: [string, "null"], format: date }
+    AssignmentWrite:
+      type: object
+      required: [group_id]
+      properties:
+        group_id: { type: string, format: uuid }
+        reels_per_day: { type: integer, default: 2 }
+        channel: { $ref: "#/components/schemas/Channel" }
+        is_mandatory: { type: boolean }
+        starts_on: { type: string, format: date }
+        ends_on: { type: [string, "null"], format: date }
+    UploadSlot:
+      type: object
+      required: [id, upload_url, method, headers, expires_at]
+      properties:
+        id: { type: string, format: uuid, description: "Media asset id (or recording id)" }
+        upload_url: { type: string }
+        method: { type: string, enum: [PUT] }
+        headers: { type: object, additionalProperties: { type: string } }
+        expires_at: { type: string, format: date-time }
+    SourceCreate:
+      type: object
+      required: [kind, title]
+      properties:
+        kind: { type: string, enum: [pdf, pptx, image, url, youtube, topic_prompt, podcast_audio, video] }
+        title: { type: string }
+        url: { type: string }
+        media_asset_id: { type: string, format: uuid }
+        prompt: { type: string }
+        language: { type: string }
+    Source:
+      type: object
+      required: [id, kind, title, extraction_status, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string }
+        title: { type: string }
+        url: { type: [string, "null"] }
+        language: { type: [string, "null"] }
+        extraction_status: { type: string, enum: [pending, running, done, failed] }
+        extraction_error: { type: [string, "null"] }
+        summary: { type: [object, "null"], description: "{key_ideas: [...], suggested_reels: [{title, hook}], word_count, duration_ms}" }
+        created_by: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+    Moment:
+      type: object
+      required: [id, start_ms, end_ms, excerpt, score, selected]
+      properties:
+        id: { type: string, format: uuid }
+        start_ms: { type: integer }
+        end_ms: { type: integer }
+        excerpt: { type: string }
+        title: { type: [string, "null"] }
+        speaker: { type: [string, "null"] }
+        score: { type: number }
+        selected: { type: boolean }
+        reel_id: { type: [string, "null"], format: uuid }
+    GenerationRequest:
+      type: object
+      required: [source_id, topic_id, languages, reel_count, style]
+      properties:
+        source_id: { type: string, format: uuid }
+        topic_id: { type: string, format: uuid }
+        languages: { type: array, items: { type: string }, minItems: 1 }
+        reel_count: { type: integer, minimum: 1, maximum: 12 }
+        style: { type: string, enum: [ai_avatar, motion, broll] }
+        presenter: { type: object, properties: { name: { type: string }, avatar_id: { type: string }, voice_id: { type: string } } }
+        reviewer_id: { type: string, format: uuid }
+        brief: { type: string, description: "Optional steer for Claude: tone, must-include points" }
+    GenerationJob:
+      type: object
+      required: [id, source_id, status, progress_pct, cost_credits, steps, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        source_id: { type: string, format: uuid }
+        topic_id: { type: [string, "null"], format: uuid }
+        status: { type: string, enum: [queued, running, paused, done, failed, cancelled] }
+        progress_pct: { type: integer }
+        cost_credits: { type: integer }
+        params: { type: object }
+        error: { type: [string, "null"] }
+        steps:
+          type: array
+          items:
+            type: object
+            required: [position, step, status]
+            properties:
+              position: { type: integer }
+              step: { type: string }
+              status: { type: string }
+              provider: { type: [string, "null"] }
+              attempt: { type: integer }
+              started_at: { type: [string, "null"], format: date-time }
+              finished_at: { type: [string, "null"], format: date-time }
+              log: { type: [string, "null"] }
+        reel_ids: { type: array, items: { type: string, format: uuid } }
+        created_at: { type: string, format: date-time }
+        finished_at: { type: [string, "null"], format: date-time }
+    Question:
+      type: object
+      required: [id, language, prompt, options]
+      properties:
+        id: { type: string, format: uuid }
+        language: { type: string }
+        prompt: { type: string }
+        options: { type: array, items: { type: object, required: [key, text], properties: { key: { type: string }, text: { type: string } } } }
+        correct_key: { type: string, description: "Present only in admin responses, never in learner payloads" }
+        explanation: { type: [string, "null"] }
+    Reel:
+      type: object
+      required: [id, topic_id, kind, status, title, language, version, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        topic_id: { type: string, format: uuid }
+        source_id: { type: [string, "null"], format: uuid }
+        generation_job_id: { type: [string, "null"], format: uuid }
+        kind: { $ref: "#/components/schemas/ReelKind" }
+        status: { $ref: "#/components/schemas/ReelStatus" }
+        title: { type: string }
+        language: { type: string }
+        script: { type: [string, "null"] }
+        source_citation: { type: [string, "null"] }
+        presenter: { type: object }
+        video_url: { type: [string, "null"] }
+        thumbnail_url: { type: [string, "null"] }
+        captions_url: { type: [string, "null"] }
+        duration_ms: { type: [integer, "null"] }
+        version: { type: integer }
+        compliance_tag: { type: [string, "null"] }
+        consent_confirmed: { type: boolean }
+        variants: { type: array, items: { type: object, properties: { language: { type: string }, dub_status: { type: string }, video_url: { type: [string, "null"] }, captions_url: { type: [string, "null"] } } } }
+        question: { oneOf: [ { $ref: "#/components/schemas/Question" }, { type: "null" } ] }
+        approvals: { type: array, items: { type: object, properties: { role: { type: string }, decision: { type: string }, reviewer_name: { type: string }, comment: { type: [string, "null"] }, decided_at: { type: string, format: date-time }, reel_version: { type: integer } } } }
+        audience: { type: array, items: { $ref: "#/components/schemas/GroupRef" } }
+        recall_pct: { type: [integer, "null"] }
+        published_at: { type: [string, "null"], format: date-time }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    ReelListItem:
+      type: object
+      required: [id, topic, kind, status, title, language, version, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        topic: { type: object, properties: { id: { type: string, format: uuid }, name: { type: string } } }
+        kind: { $ref: "#/components/schemas/ReelKind" }
+        status: { $ref: "#/components/schemas/ReelStatus" }
+        title: { type: string }
+        language: { type: string }
+        languages: { type: array, items: { type: string } }
+        duration_ms: { type: [integer, "null"] }
+        thumbnail_url: { type: [string, "null"] }
+        version: { type: integer }
+        recall_pct: { type: [integer, "null"] }
+        plays: { type: integer }
+        awaiting: { type: [string, "null"], description: "e.g. 'SME sign-off'" }
+        updated_at: { type: string, format: date-time }
+    ReelPatch:
+      type: object
+      properties:
+        title: { type: string }
+        script: { type: string }
+        source_citation: { type: string }
+        presenter: { type: object }
+        compliance_tag: { type: string }
+        question:
+          type: object
+          properties:
+            prompt: { type: string }
+            options: { type: array, items: { type: object, properties: { key: { type: string }, text: { type: string } } } }
+            correct_key: { type: string }
+            explanation: { type: string }
+    ReelCard:
+      type: object
+      required: [id, title, topic_name, duration_ms, language, saved]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        topic_name: { type: string }
+        presenter_name: { type: [string, "null"] }
+        duration_ms: { type: integer }
+        language: { type: string }
+        thumbnail_url: { type: [string, "null"] }
+        saved: { type: boolean }
+        seen: { type: boolean }
+    ReelPlayable:
+      type: object
+      required: [id, title, topic_name, language, duration_ms, video_url, captions_on_by_default, question]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        topic_name: { type: string }
+        presenter_name: { type: [string, "null"] }
+        language: { type: string }
+        duration_ms: { type: integer }
+        video_url: { type: string, description: "Signed URL, valid 60 minutes" }
+        captions_url: { type: [string, "null"] }
+        thumbnail_url: { type: [string, "null"] }
+        captions_on_by_default: { type: boolean }
+        caption_text: { type: [string, "null"], description: "Key line shown as the on-screen caption" }
+        source_citation: { type: [string, "null"] }
+        why_am_i_seeing_this: { type: string }
+        question: { oneOf: [ { $ref: "#/components/schemas/Question" }, { type: "null" } ], description: "Without correct_key" }
+        saved: { type: boolean }
+    DailyPlan:
+      type: object
+      required: [id, plan_date, status, items, stats]
+      properties:
+        id: { type: string, format: uuid }
+        plan_date: { type: string, format: date }
+        status: { type: string, enum: [open, done, skipped, empty] }
+        greeting_name: { type: string }
+        estimated_seconds: { type: integer }
+        items:
+          type: array
+          items:
+            type: object
+            required: [id, position, kind, reason, state]
+            properties:
+              id: { type: string, format: uuid }
+              position: { type: integer }
+              kind: { type: string, enum: [reel, question_only] }
+              reason: { type: string, enum: [new, review] }
+              state: { type: string, enum: [pending, watched, answered] }
+              reel: { oneOf: [ { $ref: "#/components/schemas/ReelPlayable" }, { type: "null" } ] }
+              question: { oneOf: [ { $ref: "#/components/schemas/Question" }, { type: "null" } ] }
+              review_note: { type: [string, "null"], description: "e.g. 'Asked again · day 10'" }
+        stats: { $ref: "#/components/schemas/UserStats" }
+        yesterday: { type: [object, "null"], properties: { remembered: { type: integer }, total: { type: integer }, next_review_on: { type: [string, "null"], format: date } } }
+    AnswerOutcome:
+      type: object
+      required: [is_correct, correct_key, explanation, next_due_on, plan_status]
+      properties:
+        is_correct: { type: boolean }
+        correct_key: { type: string }
+        explanation: { type: [string, "null"] }
+        next_due_on: { type: string, format: date }
+        plan_status: { type: string, enum: [open, done] }
+        stats: { $ref: "#/components/schemas/UserStats" }
+    UserStats:
+      type: object
+      required: [streak_current, streak_longest, freezes_available, remembered_count]
+      properties:
+        streak_current: { type: integer }
+        streak_longest: { type: integer }
+        freezes_available: { type: integer }
+        remembered_count: { type: integer }
+        reels_completed: { type: integer }
+        last_active_on: { type: [string, "null"], format: date }
+    Progress:
+      type: object
+      required: [remembered_pct, series, by_topic, milestones, stats]
+      properties:
+        remembered_pct: { type: integer }
+        series: { type: array, items: { type: object, properties: { week: { type: string }, remembered_pct: { type: integer } } } }
+        by_topic: { type: array, items: { type: object, properties: { topic_id: { type: string, format: uuid }, name: { type: string }, recall_pct: { type: integer }, next_review_on: { type: [string, "null"], format: date } } } }
+        milestones: { type: array, items: { type: object, properties: { key: { type: string }, label: { type: string }, reached: { type: boolean } } } }
+        stats: { $ref: "#/components/schemas/UserStats" }
+    TeamReadiness:
+      type: object
+      required: [team_recall_pct, topics, members]
+      properties:
+        team_recall_pct: { type: integer }
+        active_this_week: { type: integer }
+        team_size: { type: integer }
+        topics: { type: array, items: { type: object, properties: { id: { type: string, format: uuid }, name: { type: string }, ready_count: { type: integer } } } }
+        members:
+          type: array
+          items:
+            type: object
+            required: [user_id, full_name, readiness]
+            properties:
+              user_id: { type: string, format: uuid }
+              full_name: { type: string }
+              language: { type: string }
+              last_active_on: { type: [string, "null"], format: date }
+              nudged_today: { type: boolean }
+              readiness: { type: array, items: { type: object, properties: { topic_id: { type: string, format: uuid }, state: { type: string, enum: [ready, not_yet, not_started] } } } }
+    Dashboard:
+      type: object
+      properties:
+        weekly_active_pct: { type: integer }
+        recall_pct: { type: integer }
+        learners_total: { type: integer }
+        learners_active: { type: integer }
+        hrdf_hours: { type: number }
+        credits: { type: integer }
+        attention: { type: array, items: { type: object, properties: { kind: { type: string }, text: { type: string }, href: { type: string } } } }
+        series: { type: array, items: { type: object, properties: { day: { type: string, format: date }, active: { type: integer }, recall_pct: { type: integer } } } }
+    ReportOverview:
+      type: object
+      properties:
+        learners_active: { type: integer }
+        reels_completed: { type: integer }
+        answers_total: { type: integer }
+        recall_pct: { type: integer }
+        minutes_on_mandatory: { type: number }
+    ReportRow:
+      type: object
+      required: [id, name, learners_active, recall_pct, reels_completed, minutes_total]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        learners_active: { type: integer }
+        learners_total: { type: integer }
+        recall_pct: { type: integer }
+        reels_completed: { type: integer }
+        minutes_total: { type: number }
+        ready_pct: { type: integer }
+    Export:
+      type: object
+      required: [id, kind, status, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string }
+        status: { type: string }
+        period_start: { type: [string, "null"], format: date }
+        period_end: { type: [string, "null"], format: date }
+        created_at: { type: string, format: date-time }
+        finished_at: { type: [string, "null"], format: date-time }
+    Integration:
+      type: object
+      required: [kind, status]
+      properties:
+        kind: { $ref: "#/components/schemas/IntegrationKind" }
+        status: { type: string, enum: [disconnected, connected, error] }
+        last_sync_at: { type: [string, "null"], format: date-time }
+        last_error: { type: [string, "null"] }
+        public_config: { type: object, additionalProperties: true, description: "Non-secret fields only" }
+    AuditEntry:
+      type: object
+      required: [id, action, entity, at]
+      properties:
+        id: { type: string, format: uuid }
+        actor: { type: [object, "null"], properties: { id: { type: string, format: uuid }, full_name: { type: string } } }
+        action: { type: string }
+        entity: { type: string }
+        entity_id: { type: [string, "null"], format: uuid }
+        diff: { type: [object, "null"] }
+        at: { type: string, format: date-time }

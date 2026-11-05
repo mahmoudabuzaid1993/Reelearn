@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reelearn demo frame</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300..700&display=swap">
+<style>
+  html,body{margin:0;width:1920px;height:1080px;overflow:hidden;font-family:'Readex Pro',system-ui,sans-serif;background:transparent}
+  /* phone scenes: text on the left, a bezel on the right that the recording is placed into */
+  #phonebg{position:absolute;inset:0;background:#F6F7F5;display:none}
+  #phonebg.on{display:block}
+  .copy{position:absolute;left:150px;top:0;bottom:0;width:900px;display:flex;flex-direction:column;justify-content:center;gap:34px;color:#0D2B3E}
+  .eyebrow{font-size:24px;font-weight:600;letter-spacing:.14em;color:#FF6257}
+  h1{margin:0;font-size:78px;font-weight:600;line-height:1.08}
+  ul{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:22px}
+  li{font-size:36px;color:#5B6B78;display:flex;gap:20px;align-items:center}
+  li i{flex:0 0 14px;height:14px;border-radius:50%;background:#2EC4B6}
+  .mark{position:absolute;left:150px;top:70px;height:44px}
+  /* bezel: inner hole is 444 x 961 at (1268, 60) */
+  .bezel{position:absolute;left:1250px;top:42px;width:480px;height:997px;border-radius:58px;background:#0D2B3E;box-shadow:0 34px 90px rgba(13,43,62,.30)}
+  .hole{position:absolute;left:1268px;top:60px;width:444px;height:961px;background:#081822}
+  /* lower third for console scenes */
+  #lower{position:absolute;inset:0;display:none}
+  #lower.on{display:block}
+  .pill{position:absolute;left:56px;bottom:52px;display:flex;align-items:center;gap:18px;padding:18px 30px 18px 22px;border-radius:999px;background:#0D2B3E;color:#fff;font-size:32px;font-weight:500;box-shadow:0 12px 36px rgba(8,24,34,.35)}
+  .pill i{width:16px;height:16px;border-radius:50%;background:#FF6257}
+</style>
+</head>
+<body>
+<div id="phonebg">
+  <img class="mark" src="../../brand/logo/reelearn-wordmark.svg" alt="Reelearn">
+  <div class="copy"><div class="eyebrow" id="eyebrow"></div><h1 id="h1"></h1><ul id="ul"></ul></div>
+  <div class="bezel"></div><div class="hole"></div>
+</div>
+<div id="lower"><div class="pill"><i></i><span id="pilltext"></span></div></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const kind = q.get("kind");
+  if (kind === "phonebg") {
+    document.getElementById("phonebg").classList.add("on");
+    document.getElementById("eyebrow").textContent = q.get("eyebrow") || "";
+    document.getElementById("h1").textContent = q.get("title") || "";
+    for (const b of (q.get("bullets") || "").split("|").filter(Boolean)) {
+      const li = document.createElement("li");
+      li.appendChild(document.createElement("i"));
+      li.appendChild(document.createTextNode(b));
+      document.getElementById("ul").appendChild(li);
+    }
+  } else {
+    document.getElementById("lower").classList.add("on");
+    document.getElementById("pilltext").textContent = q.get("title") || "";
+  }
+</script>
+</body>
+</html>

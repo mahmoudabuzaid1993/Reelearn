@@ -1,0 +1,8 @@
+extends:
+  - recommended
+rules:
+  operation-summary: warn
+  operation-operationId: off
+  operation-4xx-response: off
+  no-unused-components: warn
+  info-license: off

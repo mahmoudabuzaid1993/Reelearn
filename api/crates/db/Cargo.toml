@@ -1,0 +1,21 @@
+[package]
+name = "reelearn-db"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Postgres access for Reelearn: pool, tenant-scoped transactions (RLS), repositories per aggregate, migrations."
+
+[dependencies]
+reelearn-domain = { workspace = true, features = ["sqlx"] }
+chrono = { workspace = true }
+chrono-tz = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }

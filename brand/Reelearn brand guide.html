@@ -1,0 +1,370 @@
+<title>Reelearn Brand Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300..700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+/* Layout: a quiet studio brand book. One column of numbered chapters, each a full-width band;
+   logo tiles sit on explicit paper/night surfaces so the marks read the same in both themes. */
+:root {
+  --ink: #0D2B3E; --coral: #FF6257; --mint: #2EC4B6; --paper: #F6F7F5; --night: #081822;
+  --bg: #FBFBFA; --fg: #0D2B3E; --muted: #5B6B78; --line: #D9DEDC; --tile: #FFFFFF; --tile-2: #EEF1EF;
+  --font-display: "Readex Pro", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Readex Pro", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0B1C28; --fg: #EEF2F1; --muted: #9FB0BA; --line: #22394A; --tile: #10263A; --tile-2: #0E2131; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0B1C28; --fg: #EEF2F1; --muted: #9FB0BA; --line: #22394A; --tile: #10263A; --tile-2: #0E2131; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-block: 0 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+h1, h2, h3, h4 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15 }
+h2 { font-size: clamp(26px, 3.4vw, 40px); font-weight: 600; letter-spacing: -0.01em }
+h3 { font-size: 19px; font-weight: 600; margin-block: 28px 10px }
+p { max-width: 66ch; margin: 0 0 14px }
+.wrap { max-width: 1120px; margin: 0 auto }
+.eyebrow { font-family: var(--font-display); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--coral); font-weight: 600 }
+section { padding-block: 64px 24px; border-top: 1px solid var(--line) }
+section header { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; margin-bottom: 28px }
+section header p { color: var(--muted); margin: 0 }
+@media (max-width: 760px) { section header { grid-template-columns: 1fr } }
+
+.hero { padding-block: 56px 48px; display: grid; gap: 28px }
+.hero .mark-row { display: flex; align-items: center; gap: 24px; flex-wrap: wrap }
+.hero svg { height: clamp(64px, 11vw, 132px); width: auto; max-width: 100% }
+.hero .tag { font-family: var(--font-display); font-size: clamp(22px, 3vw, 34px); font-weight: 500; max-width: 24ch; line-height: 1.25 }
+.hero .tag span[dir=rtl] { display: block; color: var(--muted); font-weight: 400 }
+.meta { display: flex; gap: 20px; flex-wrap: wrap; color: var(--muted); font-size: 14px }
+
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) }
+.grid > * { min-width: 0 }
+.tile { background: var(--tile); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 10px; min-height: 180px; justify-content: center; align-items: center; position: relative }
+.tile.paper { background: #F6F7F5; border-color: #E3E7E4 }
+.tile.night { background: #081822; border-color: #081822 }
+.tile.coral { background: #FF6257; border-color: #FF6257 }
+.tile svg { max-width: 100%; height: auto; width: min(100%, 320px) }
+.tile.mark svg { width: 64px }
+.tile.icon svg { width: 120px; border-radius: 27px }
+.tile .cap { position: absolute; left: 14px; bottom: 10px; font-size: 12px; color: #5B6B78; font-family: var(--font-display); letter-spacing: .04em }
+.tile.night .cap, .tile.coral .cap { color: rgba(255,255,255,.75) }
+
+.card { background: var(--tile); border: 1px solid var(--line); border-radius: 14px; padding: 22px }
+.card h4 { font-size: 15px; margin-bottom: 8px; font-weight: 600 }
+.card p { font-size: 15px; color: var(--muted); margin: 0 }
+ul { padding-left: 20px; margin: 0 0 14px }
+li { margin-bottom: 6px }
+.big { font-family: var(--font-display); font-size: clamp(20px, 2.6vw, 28px); font-weight: 500; max-width: 30ch; line-height: 1.3 }
+
+.swatches { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) }
+.sw { border-radius: 12px; padding: 18px 16px; min-height: 150px; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; border: 1px solid var(--line) }
+.sw b { font-family: var(--font-display); font-size: 15px }
+.sw code { font-family: var(--font-mono); font-size: 12px; opacity: .85 }
+.sw small { font-size: 12px; opacity: .8 }
+.ratio { display: flex; height: 18px; border-radius: 9px; overflow: hidden; margin: 10px 0 18px; max-width: 520px }
+
+table { border-collapse: collapse; width: 100%; font-size: 14.5px }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top }
+th { font-family: var(--font-display); font-weight: 600; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted) }
+.scroll { overflow-x: auto }
+.dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 6px }
+
+.specimen { display: grid; gap: 18px; grid-template-columns: 1fr 1fr }
+@media (max-width: 760px) { .specimen { grid-template-columns: 1fr } }
+.specimen .card { display: flex; flex-direction: column; gap: 10px }
+.t-display { font-family: var(--font-display); font-weight: 600; font-size: 40px; line-height: 1.1; letter-spacing: -0.01em }
+.t-h { font-family: var(--font-display); font-weight: 500; font-size: 24px; line-height: 1.2 }
+.t-body { font-family: var(--font-body); font-size: 16px }
+.t-label { font-family: var(--font-display); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted) }
+.t-num { font-family: var(--font-display); font-variant-numeric: tabular-nums; font-size: 32px; font-weight: 600 }
+[dir=rtl] { text-align: right }
+
+.voice { display: grid; gap: 16px; grid-template-columns: 1fr 1fr }
+@media (max-width: 760px) { .voice { grid-template-columns: 1fr } }
+.voice .card ul { padding-left: 18px; font-size: 15px }
+.say { border-left: 3px solid var(--mint); padding-left: 14px }
+.avoid { border-left: 3px solid var(--coral); padding-left: 14px }
+
+.apps { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: start }
+.phone { width: 100%; max-width: 250px; aspect-ratio: 9 / 18; background: var(--night); border-radius: 30px; padding: 12px; color: #fff; position: relative; overflow: hidden; margin: 0 auto; display: flex; flex-direction: column; justify-content: space-between; font-family: var(--font-display) }
+.phone .segs { display: flex; gap: 4px }
+.phone .segs i { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,.25) }
+.phone .segs i.on { background: #fff }
+.phone .chip { display: inline-block; font-size: 11px; background: rgba(255,255,255,.14); padding: 4px 8px; border-radius: 999px; margin-bottom: 8px }
+.phone .cap { font-size: 15px; font-weight: 500; line-height: 1.3 }
+.phone .bar { height: 4px; background: rgba(255,255,255,.2); border-radius: 2px; margin-top: 10px }
+.phone .bar i { display: block; height: 100%; width: 62%; background: var(--coral); border-radius: 2px }
+.phone .q { font-size: 15px; font-weight: 500; line-height: 1.3; margin-bottom: 10px }
+.phone .opt { font-size: 13px; padding: 9px 10px; border: 1px solid rgba(255,255,255,.25); border-radius: 10px; margin-bottom: 6px }
+.phone .opt.pick { border-color: var(--mint); background: rgba(46,196,182,.15) }
+.phone .done { text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; flex: 1 }
+.phone .done .ring { width: 72px; height: 72px; border-radius: 50%; background: var(--mint); display: grid; place-items: center }
+.phone .done b { font-size: 18px; font-weight: 600 }
+.phone .done span { font-size: 13px; opacity: .8 }
+.phone .foot { font-size: 11px; opacity: .6; text-align: center }
+.caption { font-size: 13px; color: var(--muted); text-align: center; margin-top: 8px }
+.wa { max-width: 340px; background: var(--tile); border: 1px solid var(--line); border-radius: 14px; padding: 14px; font-size: 14.5px }
+.wa .b { background: #E7FFDB; color: #0D2B3E; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; line-height: 1.45 }
+.wa .b[dir=rtl] { font-family: var(--font-body) }
+.wa .b small { display: block; font-size: 11px; opacity: .6; text-align: right; margin-top: 4px }
+.admin { background: var(--tile); border: 1px solid var(--line); border-radius: 14px; overflow: hidden }
+.admin .top { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); font-family: var(--font-display); font-size: 14px }
+.admin .top svg { width: 18px; height: auto }
+.admin .top .sp { flex: 1 }
+.admin .top .pill { font-size: 12px; background: var(--tile-2); padding: 4px 10px; border-radius: 999px; color: var(--muted) }
+.admin .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 }
+.admin .kpi { padding: 16px; border-right: 1px solid var(--line) }
+.admin .kpi:last-child { border-right: 0 }
+.admin .kpi .t-label { margin-bottom: 4px }
+.misuse li { margin-bottom: 8px }
+footer { margin-top: 60px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 24px }
+:focus-visible { outline: 2px solid var(--coral); outline-offset: 3px }
+@media (prefers-reduced-motion: no-preference) { .hero svg { transition: transform .4s ease } }
+</style>
+
+<div class="wrap">
+<div class="hero">
+  <div class="meta"><span>Brand guide · v1.0</span><span>29 October 2026</span><span>Riyadh</span></div>
+  <div class="mark-row"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="-60 -820 4515.0526315789475 1130" data-w="4515.0526315789475" data-h="1130"><path d="M91 0V-700H401Q467 -700 519.5 -671.0Q572 -642 603.0 -591.5Q634 -541 634 -476Q634 -413 603.0 -362.0Q572 -311 519.5 -281.0Q467 -251 401 -251H235V0ZM489 0 311 -317 464 -342 662 1ZM235 -374H395Q422 -374 442.5 -386.5Q463 -399 474.5 -421.0Q486 -443 486 -471Q486 -500 472.0 -522.5Q458 -545 433.0 -557.5Q408 -570 375 -570H235Z" fill="#0D2B3E"/><path d="M995 10Q909 10 844.5 -25.0Q780 -60 744.5 -121.0Q709 -182 709 -260Q709 -322 729.0 -373.5Q749 -425 785.0 -462.0Q821 -499 870.5 -519.5Q920 -540 979 -540Q1033 -540 1078.5 -520.5Q1124 -501 1157.5 -465.5Q1191 -430 1209.0 -382.0Q1227 -334 1226 -277L1225 -233H800L777 -321H1108L1091 -303V-324Q1089 -352 1073.5 -373.0Q1058 -394 1034.0 -406.5Q1010 -419 981 -419Q936 -419 905.5 -401.5Q875 -384 859.5 -351.5Q844 -319 844 -271Q844 -224 864.0 -188.5Q884 -153 921.5 -134.0Q959 -115 1010 -115Q1045 -115 1074.0 -126.0Q1103 -137 1137 -164L1204 -69Q1176 -44 1141.0 -26.0Q1106 -8 1069.0 1.0Q1032 10 995 10Z" fill="#0D2B3E"/><path d="M1574 10Q1488 10 1423.5 -25.0Q1359 -60 1323.5 -121.0Q1288 -182 1288 -260Q1288 -322 1308.0 -373.5Q1328 -425 1364.0 -462.0Q1400 -499 1449.5 -519.5Q1499 -540 1558 -540Q1612 -540 1657.5 -520.5Q1703 -501 1736.5 -465.5Q1770 -430 1788.0 -382.0Q1806 -334 1805 -277L1804 -233H1379L1356 -321H1687L1670 -303V-324Q1668 -352 1652.5 -373.0Q1637 -394 1613.0 -406.5Q1589 -419 1560 -419Q1515 -419 1484.5 -401.5Q1454 -384 1438.5 -351.5Q1423 -319 1423 -271Q1423 -224 1443.0 -188.5Q1463 -153 1500.5 -134.0Q1538 -115 1589 -115Q1624 -115 1653.0 -126.0Q1682 -137 1716 -164L1783 -69Q1755 -44 1720.0 -26.0Q1685 -8 1648.0 1.0Q1611 10 1574 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M2421 10Q2335 10 2270.5 -25.0Q2206 -60 2170.5 -121.0Q2135 -182 2135 -260Q2135 -322 2155.0 -373.5Q2175 -425 2211.0 -462.0Q2247 -499 2296.5 -519.5Q2346 -540 2405 -540Q2459 -540 2504.5 -520.5Q2550 -501 2583.5 -465.5Q2617 -430 2635.0 -382.0Q2653 -334 2652 -277L2651 -233H2226L2203 -321H2534L2517 -303V-324Q2515 -352 2499.5 -373.0Q2484 -394 2460.0 -406.5Q2436 -419 2407 -419Q2362 -419 2331.5 -401.5Q2301 -384 2285.5 -351.5Q2270 -319 2270 -271Q2270 -224 2290.0 -188.5Q2310 -153 2347.5 -134.0Q2385 -115 2436 -115Q2471 -115 2500.0 -126.0Q2529 -137 2563 -164L2630 -69Q2602 -44 2567.0 -26.0Q2532 -8 2495.0 1.0Q2458 10 2421 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3042 0V-331Q3042 -373 3016.5 -395.5Q2991 -418 2948 -418Q2907 -418 2875.0 -402.0Q2843 -386 2815 -352L2728 -436Q2776 -486 2835.5 -513.0Q2895 -540 2965 -540Q3029 -540 3076.5 -520.0Q3124 -500 3150.0 -460.0Q3176 -420 3176 -359V0ZM2897 10Q2847 10 2806.5 -10.0Q2766 -30 2742.5 -65.5Q2719 -101 2719 -149Q2719 -190 2734.0 -221.5Q2749 -253 2778.5 -273.5Q2808 -294 2852.5 -305.0Q2897 -316 2956 -316H3112L3103 -221H2954Q2930 -221 2911.5 -217.0Q2893 -213 2880.5 -204.0Q2868 -195 2861.5 -183.0Q2855 -171 2855 -155Q2855 -138 2864.0 -125.0Q2873 -112 2888.5 -105.0Q2904 -98 2924 -98Q2953 -98 2979.5 -108.0Q3006 -118 3027.0 -136.0Q3048 -154 3060 -177L3087 -106Q3066 -72 3036.0 -46.0Q3006 -20 2971.0 -5.0Q2936 10 2897 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3296 0V-529H3433L3438 -359L3414 -395Q3427 -435 3453.5 -468.0Q3480 -501 3516.5 -520.5Q3553 -540 3593 -540Q3611 -540 3626.5 -537.5Q3642 -535 3653 -530L3615 -375Q3604 -380 3586.5 -384.5Q3569 -389 3551 -389Q3528 -389 3507.5 -380.5Q3487 -372 3471.5 -356.5Q3456 -341 3447.5 -320.0Q3439 -299 3439 -273V0Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3726 0V-529H3863L3867 -421L3839 -409Q3849 -445 3878.0 -474.5Q3907 -504 3947.0 -522.0Q3987 -540 4030 -540Q4090 -540 4130.5 -516.0Q4171 -492 4191.5 -443.5Q4212 -395 4212 -323V0H4070V-313Q4070 -349 4060.0 -373.0Q4050 -397 4030.0 -408.0Q4010 -419 3979 -418Q3955 -418 3935.0 -410.5Q3915 -403 3899.5 -389.0Q3884 -375 3876.0 -357.0Q3868 -339 3868 -317V0H3797Q3775 0 3757.0 0.0Q3739 0 3726 0Z" fill="#0D2B3E"/><g transform="translate(1883.1,-740.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#FF6257"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></svg></div>
+  <div class="tag">A minute a day. Remembered for months.<span dir="rtl" lang="ar">دقيقة كل يوم، تبقى لشهور.</span></div>
+  <p>Reelearn feeds employees short vertical learning videos on the topics their employer chooses, in a feed that ends. This guide fixes the idea, the logo, the colours, the type, the voice and the first applications so that everything the company makes looks and sounds like one product.</p>
+</div>
+
+<section id="idea">
+  <header><div class="eyebrow">01 · Brand idea</div><p>What the brand stands for, who it serves, and the single idea every decision is tested against.</p></header>
+  <h2>Finite by design</h2>
+  <p>Social feeds are built to never end. Reelearn borrows their format (vertical video, swipe, a hook in the first three seconds) and rejects their economics. Every session has a start, a recall question and a "done for today" screen. The brand promise is small on purpose: one minute a day that people still remember months later. That is also the only claim the learning evidence supports, which keeps the brand honest with the HR buyer who has to defend the purchase.</p>
+  <div class="grid">
+    <div class="card"><h4>The L&amp;D buyer</h4><p>Needs to look rigorous in front of a CHRO and an HRDF auditor. Must feel: credible, measurable, safe to put the company name on.</p></div>
+    <div class="card"><h4>The employee</h4><p>A shop-floor associate, a branch teller, a nurse, often on a personal phone between tasks. Must feel: respected, finished quickly, a little proud.</p></div>
+    <div class="card"><h4>The manager</h4><p>Wants to see who is ready without chasing. Must feel: informed in one glance, never turned into an enforcer.</p></div>
+  </div>
+  <h3>Personality</h3>
+  <div class="grid">
+    <div class="card"><h4>Brief</h4><p>Says one thing per clip, one thing per sentence.</p></div>
+    <div class="card"><h4>Warm</h4><p>Talks like a good colleague, not a compliance notice.</p></div>
+    <div class="card"><h4>Finite</h4><p>Always tells you how much is left and when you are done.</p></div>
+    <div class="card"><h4>Bilingual by birth</h4><p>Arabic and English carry equal weight; expat languages are first-class, not a toggle.</p></div>
+    <div class="card"><h4>Evidence-led</h4><p>Shows recall scores, not watch time. Never brags about minutes spent.</p></div>
+  </div>
+  <h3>Why the name works</h3>
+  <p>"Reel" and "learn" share one letter. Reel<b>l</b>earn collapses to Ree<b>l</b>earn, so the brand owns the moment where watching turns into knowing. In Arabic, ريليرن places the lam (ل), the same letter, as the tallest stroke in the middle of the word. The logo is built on that shared letter.</p>
+</section>
+
+<section id="logo">
+  <header><div class="eyebrow">02 · Logo</div><p>One device in three forms: the reel card that replaces the shared "l", the coral letter in running text, and the card on its own as the app mark.</p></header>
+  <h2>The reel card is the letter</h2>
+  <p>The card is a 300 × 740 rounded rectangle, the proportion of a vertical video frame stretched to the ascender height of Readex Pro. The check inside is drawn at the same stroke weight as the letters, so the card reads as a letter and not as a sticker. In the Arabic wordmark the lam is set in coral instead, because an Arabic word must stay joined at the baseline.</p>
+  <div class="grid">
+    <div class="tile paper"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="-60 -820 4515.0526315789475 1130" data-w="4515.0526315789475" data-h="1130"><path d="M91 0V-700H401Q467 -700 519.5 -671.0Q572 -642 603.0 -591.5Q634 -541 634 -476Q634 -413 603.0 -362.0Q572 -311 519.5 -281.0Q467 -251 401 -251H235V0ZM489 0 311 -317 464 -342 662 1ZM235 -374H395Q422 -374 442.5 -386.5Q463 -399 474.5 -421.0Q486 -443 486 -471Q486 -500 472.0 -522.5Q458 -545 433.0 -557.5Q408 -570 375 -570H235Z" fill="#0D2B3E"/><path d="M995 10Q909 10 844.5 -25.0Q780 -60 744.5 -121.0Q709 -182 709 -260Q709 -322 729.0 -373.5Q749 -425 785.0 -462.0Q821 -499 870.5 -519.5Q920 -540 979 -540Q1033 -540 1078.5 -520.5Q1124 -501 1157.5 -465.5Q1191 -430 1209.0 -382.0Q1227 -334 1226 -277L1225 -233H800L777 -321H1108L1091 -303V-324Q1089 -352 1073.5 -373.0Q1058 -394 1034.0 -406.5Q1010 -419 981 -419Q936 -419 905.5 -401.5Q875 -384 859.5 -351.5Q844 -319 844 -271Q844 -224 864.0 -188.5Q884 -153 921.5 -134.0Q959 -115 1010 -115Q1045 -115 1074.0 -126.0Q1103 -137 1137 -164L1204 -69Q1176 -44 1141.0 -26.0Q1106 -8 1069.0 1.0Q1032 10 995 10Z" fill="#0D2B3E"/><path d="M1574 10Q1488 10 1423.5 -25.0Q1359 -60 1323.5 -121.0Q1288 -182 1288 -260Q1288 -322 1308.0 -373.5Q1328 -425 1364.0 -462.0Q1400 -499 1449.5 -519.5Q1499 -540 1558 -540Q1612 -540 1657.5 -520.5Q1703 -501 1736.5 -465.5Q1770 -430 1788.0 -382.0Q1806 -334 1805 -277L1804 -233H1379L1356 -321H1687L1670 -303V-324Q1668 -352 1652.5 -373.0Q1637 -394 1613.0 -406.5Q1589 -419 1560 -419Q1515 -419 1484.5 -401.5Q1454 -384 1438.5 -351.5Q1423 -319 1423 -271Q1423 -224 1443.0 -188.5Q1463 -153 1500.5 -134.0Q1538 -115 1589 -115Q1624 -115 1653.0 -126.0Q1682 -137 1716 -164L1783 -69Q1755 -44 1720.0 -26.0Q1685 -8 1648.0 1.0Q1611 10 1574 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M2421 10Q2335 10 2270.5 -25.0Q2206 -60 2170.5 -121.0Q2135 -182 2135 -260Q2135 -322 2155.0 -373.5Q2175 -425 2211.0 -462.0Q2247 -499 2296.5 -519.5Q2346 -540 2405 -540Q2459 -540 2504.5 -520.5Q2550 -501 2583.5 -465.5Q2617 -430 2635.0 -382.0Q2653 -334 2652 -277L2651 -233H2226L2203 -321H2534L2517 -303V-324Q2515 -352 2499.5 -373.0Q2484 -394 2460.0 -406.5Q2436 -419 2407 -419Q2362 -419 2331.5 -401.5Q2301 -384 2285.5 -351.5Q2270 -319 2270 -271Q2270 -224 2290.0 -188.5Q2310 -153 2347.5 -134.0Q2385 -115 2436 -115Q2471 -115 2500.0 -126.0Q2529 -137 2563 -164L2630 -69Q2602 -44 2567.0 -26.0Q2532 -8 2495.0 1.0Q2458 10 2421 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3042 0V-331Q3042 -373 3016.5 -395.5Q2991 -418 2948 -418Q2907 -418 2875.0 -402.0Q2843 -386 2815 -352L2728 -436Q2776 -486 2835.5 -513.0Q2895 -540 2965 -540Q3029 -540 3076.5 -520.0Q3124 -500 3150.0 -460.0Q3176 -420 3176 -359V0ZM2897 10Q2847 10 2806.5 -10.0Q2766 -30 2742.5 -65.5Q2719 -101 2719 -149Q2719 -190 2734.0 -221.5Q2749 -253 2778.5 -273.5Q2808 -294 2852.5 -305.0Q2897 -316 2956 -316H3112L3103 -221H2954Q2930 -221 2911.5 -217.0Q2893 -213 2880.5 -204.0Q2868 -195 2861.5 -183.0Q2855 -171 2855 -155Q2855 -138 2864.0 -125.0Q2873 -112 2888.5 -105.0Q2904 -98 2924 -98Q2953 -98 2979.5 -108.0Q3006 -118 3027.0 -136.0Q3048 -154 3060 -177L3087 -106Q3066 -72 3036.0 -46.0Q3006 -20 2971.0 -5.0Q2936 10 2897 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3296 0V-529H3433L3438 -359L3414 -395Q3427 -435 3453.5 -468.0Q3480 -501 3516.5 -520.5Q3553 -540 3593 -540Q3611 -540 3626.5 -537.5Q3642 -535 3653 -530L3615 -375Q3604 -380 3586.5 -384.5Q3569 -389 3551 -389Q3528 -389 3507.5 -380.5Q3487 -372 3471.5 -356.5Q3456 -341 3447.5 -320.0Q3439 -299 3439 -273V0Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3726 0V-529H3863L3867 -421L3839 -409Q3849 -445 3878.0 -474.5Q3907 -504 3947.0 -522.0Q3987 -540 4030 -540Q4090 -540 4130.5 -516.0Q4171 -492 4191.5 -443.5Q4212 -395 4212 -323V0H4070V-313Q4070 -349 4060.0 -373.0Q4050 -397 4030.0 -408.0Q4010 -419 3979 -418Q3955 -418 3935.0 -410.5Q3915 -403 3899.5 -389.0Q3884 -375 3876.0 -357.0Q3868 -339 3868 -317V0H3797Q3775 0 3757.0 0.0Q3739 0 3726 0Z" fill="#0D2B3E"/><g transform="translate(1883.1,-740.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#FF6257"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="cap">Display wordmark</span></div>
+    <div class="tile night"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="-60 -820 4515.0526315789475 1130" data-w="4515.0526315789475" data-h="1130"><path d="M91 0V-700H401Q467 -700 519.5 -671.0Q572 -642 603.0 -591.5Q634 -541 634 -476Q634 -413 603.0 -362.0Q572 -311 519.5 -281.0Q467 -251 401 -251H235V0ZM489 0 311 -317 464 -342 662 1ZM235 -374H395Q422 -374 442.5 -386.5Q463 -399 474.5 -421.0Q486 -443 486 -471Q486 -500 472.0 -522.5Q458 -545 433.0 -557.5Q408 -570 375 -570H235Z" fill="#FFFFFF"/><path d="M995 10Q909 10 844.5 -25.0Q780 -60 744.5 -121.0Q709 -182 709 -260Q709 -322 729.0 -373.5Q749 -425 785.0 -462.0Q821 -499 870.5 -519.5Q920 -540 979 -540Q1033 -540 1078.5 -520.5Q1124 -501 1157.5 -465.5Q1191 -430 1209.0 -382.0Q1227 -334 1226 -277L1225 -233H800L777 -321H1108L1091 -303V-324Q1089 -352 1073.5 -373.0Q1058 -394 1034.0 -406.5Q1010 -419 981 -419Q936 -419 905.5 -401.5Q875 -384 859.5 -351.5Q844 -319 844 -271Q844 -224 864.0 -188.5Q884 -153 921.5 -134.0Q959 -115 1010 -115Q1045 -115 1074.0 -126.0Q1103 -137 1137 -164L1204 -69Q1176 -44 1141.0 -26.0Q1106 -8 1069.0 1.0Q1032 10 995 10Z" fill="#FFFFFF"/><path d="M1574 10Q1488 10 1423.5 -25.0Q1359 -60 1323.5 -121.0Q1288 -182 1288 -260Q1288 -322 1308.0 -373.5Q1328 -425 1364.0 -462.0Q1400 -499 1449.5 -519.5Q1499 -540 1558 -540Q1612 -540 1657.5 -520.5Q1703 -501 1736.5 -465.5Q1770 -430 1788.0 -382.0Q1806 -334 1805 -277L1804 -233H1379L1356 -321H1687L1670 -303V-324Q1668 -352 1652.5 -373.0Q1637 -394 1613.0 -406.5Q1589 -419 1560 -419Q1515 -419 1484.5 -401.5Q1454 -384 1438.5 -351.5Q1423 -319 1423 -271Q1423 -224 1443.0 -188.5Q1463 -153 1500.5 -134.0Q1538 -115 1589 -115Q1624 -115 1653.0 -126.0Q1682 -137 1716 -164L1783 -69Q1755 -44 1720.0 -26.0Q1685 -8 1648.0 1.0Q1611 10 1574 10Z" fill="#FFFFFF"/><path transform="translate(126.05263157894751,0)" d="M2421 10Q2335 10 2270.5 -25.0Q2206 -60 2170.5 -121.0Q2135 -182 2135 -260Q2135 -322 2155.0 -373.5Q2175 -425 2211.0 -462.0Q2247 -499 2296.5 -519.5Q2346 -540 2405 -540Q2459 -540 2504.5 -520.5Q2550 -501 2583.5 -465.5Q2617 -430 2635.0 -382.0Q2653 -334 2652 -277L2651 -233H2226L2203 -321H2534L2517 -303V-324Q2515 -352 2499.5 -373.0Q2484 -394 2460.0 -406.5Q2436 -419 2407 -419Q2362 -419 2331.5 -401.5Q2301 -384 2285.5 -351.5Q2270 -319 2270 -271Q2270 -224 2290.0 -188.5Q2310 -153 2347.5 -134.0Q2385 -115 2436 -115Q2471 -115 2500.0 -126.0Q2529 -137 2563 -164L2630 -69Q2602 -44 2567.0 -26.0Q2532 -8 2495.0 1.0Q2458 10 2421 10Z" fill="#FFFFFF"/><path transform="translate(126.05263157894751,0)" d="M3042 0V-331Q3042 -373 3016.5 -395.5Q2991 -418 2948 -418Q2907 -418 2875.0 -402.0Q2843 -386 2815 -352L2728 -436Q2776 -486 2835.5 -513.0Q2895 -540 2965 -540Q3029 -540 3076.5 -520.0Q3124 -500 3150.0 -460.0Q3176 -420 3176 -359V0ZM2897 10Q2847 10 2806.5 -10.0Q2766 -30 2742.5 -65.5Q2719 -101 2719 -149Q2719 -190 2734.0 -221.5Q2749 -253 2778.5 -273.5Q2808 -294 2852.5 -305.0Q2897 -316 2956 -316H3112L3103 -221H2954Q2930 -221 2911.5 -217.0Q2893 -213 2880.5 -204.0Q2868 -195 2861.5 -183.0Q2855 -171 2855 -155Q2855 -138 2864.0 -125.0Q2873 -112 2888.5 -105.0Q2904 -98 2924 -98Q2953 -98 2979.5 -108.0Q3006 -118 3027.0 -136.0Q3048 -154 3060 -177L3087 -106Q3066 -72 3036.0 -46.0Q3006 -20 2971.0 -5.0Q2936 10 2897 10Z" fill="#FFFFFF"/><path transform="translate(126.05263157894751,0)" d="M3296 0V-529H3433L3438 -359L3414 -395Q3427 -435 3453.5 -468.0Q3480 -501 3516.5 -520.5Q3553 -540 3593 -540Q3611 -540 3626.5 -537.5Q3642 -535 3653 -530L3615 -375Q3604 -380 3586.5 -384.5Q3569 -389 3551 -389Q3528 -389 3507.5 -380.5Q3487 -372 3471.5 -356.5Q3456 -341 3447.5 -320.0Q3439 -299 3439 -273V0Z" fill="#FFFFFF"/><path transform="translate(126.05263157894751,0)" d="M3726 0V-529H3863L3867 -421L3839 -409Q3849 -445 3878.0 -474.5Q3907 -504 3947.0 -522.0Q3987 -540 4030 -540Q4090 -540 4130.5 -516.0Q4171 -492 4191.5 -443.5Q4212 -395 4212 -323V0H4070V-313Q4070 -349 4060.0 -373.0Q4050 -397 4030.0 -408.0Q4010 -419 3979 -418Q3955 -418 3935.0 -410.5Q3915 -403 3899.5 -389.0Q3884 -375 3876.0 -357.0Q3868 -339 3868 -317V0H3797Q3775 0 3757.0 0.0Q3739 0 3726 0Z" fill="#FFFFFF"/><g transform="translate(1883.1,-740.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#FF6257"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="cap">Reversed</span></div>
+    <div class="tile paper"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="-60 -820 4389 1130" data-w="4389" data-h="1130"><path d="M91 0V-700H401Q467 -700 519.5 -671.0Q572 -642 603.0 -591.5Q634 -541 634 -476Q634 -413 603.0 -362.0Q572 -311 519.5 -281.0Q467 -251 401 -251H235V0ZM489 0 311 -317 464 -342 662 1ZM235 -374H395Q422 -374 442.5 -386.5Q463 -399 474.5 -421.0Q486 -443 486 -471Q486 -500 472.0 -522.5Q458 -545 433.0 -557.5Q408 -570 375 -570H235Z" fill="#0D2B3E"/><path d="M995 10Q909 10 844.5 -25.0Q780 -60 744.5 -121.0Q709 -182 709 -260Q709 -322 729.0 -373.5Q749 -425 785.0 -462.0Q821 -499 870.5 -519.5Q920 -540 979 -540Q1033 -540 1078.5 -520.5Q1124 -501 1157.5 -465.5Q1191 -430 1209.0 -382.0Q1227 -334 1226 -277L1225 -233H800L777 -321H1108L1091 -303V-324Q1089 -352 1073.5 -373.0Q1058 -394 1034.0 -406.5Q1010 -419 981 -419Q936 -419 905.5 -401.5Q875 -384 859.5 -351.5Q844 -319 844 -271Q844 -224 864.0 -188.5Q884 -153 921.5 -134.0Q959 -115 1010 -115Q1045 -115 1074.0 -126.0Q1103 -137 1137 -164L1204 -69Q1176 -44 1141.0 -26.0Q1106 -8 1069.0 1.0Q1032 10 995 10Z" fill="#0D2B3E"/><path d="M1574 10Q1488 10 1423.5 -25.0Q1359 -60 1323.5 -121.0Q1288 -182 1288 -260Q1288 -322 1308.0 -373.5Q1328 -425 1364.0 -462.0Q1400 -499 1449.5 -519.5Q1499 -540 1558 -540Q1612 -540 1657.5 -520.5Q1703 -501 1736.5 -465.5Q1770 -430 1788.0 -382.0Q1806 -334 1805 -277L1804 -233H1379L1356 -321H1687L1670 -303V-324Q1668 -352 1652.5 -373.0Q1637 -394 1613.0 -406.5Q1589 -419 1560 -419Q1515 -419 1484.5 -401.5Q1454 -384 1438.5 -351.5Q1423 -319 1423 -271Q1423 -224 1443.0 -188.5Q1463 -153 1500.5 -134.0Q1538 -115 1589 -115Q1624 -115 1653.0 -126.0Q1682 -137 1716 -164L1783 -69Q1755 -44 1720.0 -26.0Q1685 -8 1648.0 1.0Q1611 10 1574 10Z" fill="#0D2B3E"/><path d="M1903 0V-740H2045V0Z" fill="#FF6257"/><path d="M2421 10Q2335 10 2270.5 -25.0Q2206 -60 2170.5 -121.0Q2135 -182 2135 -260Q2135 -322 2155.0 -373.5Q2175 -425 2211.0 -462.0Q2247 -499 2296.5 -519.5Q2346 -540 2405 -540Q2459 -540 2504.5 -520.5Q2550 -501 2583.5 -465.5Q2617 -430 2635.0 -382.0Q2653 -334 2652 -277L2651 -233H2226L2203 -321H2534L2517 -303V-324Q2515 -352 2499.5 -373.0Q2484 -394 2460.0 -406.5Q2436 -419 2407 -419Q2362 -419 2331.5 -401.5Q2301 -384 2285.5 -351.5Q2270 -319 2270 -271Q2270 -224 2290.0 -188.5Q2310 -153 2347.5 -134.0Q2385 -115 2436 -115Q2471 -115 2500.0 -126.0Q2529 -137 2563 -164L2630 -69Q2602 -44 2567.0 -26.0Q2532 -8 2495.0 1.0Q2458 10 2421 10Z" fill="#0D2B3E"/><path d="M3042 0V-331Q3042 -373 3016.5 -395.5Q2991 -418 2948 -418Q2907 -418 2875.0 -402.0Q2843 -386 2815 -352L2728 -436Q2776 -486 2835.5 -513.0Q2895 -540 2965 -540Q3029 -540 3076.5 -520.0Q3124 -500 3150.0 -460.0Q3176 -420 3176 -359V0ZM2897 10Q2847 10 2806.5 -10.0Q2766 -30 2742.5 -65.5Q2719 -101 2719 -149Q2719 -190 2734.0 -221.5Q2749 -253 2778.5 -273.5Q2808 -294 2852.5 -305.0Q2897 -316 2956 -316H3112L3103 -221H2954Q2930 -221 2911.5 -217.0Q2893 -213 2880.5 -204.0Q2868 -195 2861.5 -183.0Q2855 -171 2855 -155Q2855 -138 2864.0 -125.0Q2873 -112 2888.5 -105.0Q2904 -98 2924 -98Q2953 -98 2979.5 -108.0Q3006 -118 3027.0 -136.0Q3048 -154 3060 -177L3087 -106Q3066 -72 3036.0 -46.0Q3006 -20 2971.0 -5.0Q2936 10 2897 10Z" fill="#0D2B3E"/><path d="M3296 0V-529H3433L3438 -359L3414 -395Q3427 -435 3453.5 -468.0Q3480 -501 3516.5 -520.5Q3553 -540 3593 -540Q3611 -540 3626.5 -537.5Q3642 -535 3653 -530L3615 -375Q3604 -380 3586.5 -384.5Q3569 -389 3551 -389Q3528 -389 3507.5 -380.5Q3487 -372 3471.5 -356.5Q3456 -341 3447.5 -320.0Q3439 -299 3439 -273V0Z" fill="#0D2B3E"/><path d="M3726 0V-529H3863L3867 -421L3839 -409Q3849 -445 3878.0 -474.5Q3907 -504 3947.0 -522.0Q3987 -540 4030 -540Q4090 -540 4130.5 -516.0Q4171 -492 4191.5 -443.5Q4212 -395 4212 -323V0H4070V-313Q4070 -349 4060.0 -373.0Q4050 -397 4030.0 -408.0Q4010 -419 3979 -418Q3955 -418 3935.0 -410.5Q3915 -403 3899.5 -389.0Q3884 -375 3876.0 -357.0Q3868 -339 3868 -317V0H3797Q3775 0 3757.0 0.0Q3739 0 3726 0Z" fill="#0D2B3E"/></svg><span class="cap">Text wordmark · below 120 px wide</span></div>
+    <div class="tile paper"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="-60 -820 4515.0526315789475 1130" data-w="4515.0526315789475" data-h="1130"><path d="M91 0V-700H401Q467 -700 519.5 -671.0Q572 -642 603.0 -591.5Q634 -541 634 -476Q634 -413 603.0 -362.0Q572 -311 519.5 -281.0Q467 -251 401 -251H235V0ZM489 0 311 -317 464 -342 662 1ZM235 -374H395Q422 -374 442.5 -386.5Q463 -399 474.5 -421.0Q486 -443 486 -471Q486 -500 472.0 -522.5Q458 -545 433.0 -557.5Q408 -570 375 -570H235Z" fill="#0D2B3E"/><path d="M995 10Q909 10 844.5 -25.0Q780 -60 744.5 -121.0Q709 -182 709 -260Q709 -322 729.0 -373.5Q749 -425 785.0 -462.0Q821 -499 870.5 -519.5Q920 -540 979 -540Q1033 -540 1078.5 -520.5Q1124 -501 1157.5 -465.5Q1191 -430 1209.0 -382.0Q1227 -334 1226 -277L1225 -233H800L777 -321H1108L1091 -303V-324Q1089 -352 1073.5 -373.0Q1058 -394 1034.0 -406.5Q1010 -419 981 -419Q936 -419 905.5 -401.5Q875 -384 859.5 -351.5Q844 -319 844 -271Q844 -224 864.0 -188.5Q884 -153 921.5 -134.0Q959 -115 1010 -115Q1045 -115 1074.0 -126.0Q1103 -137 1137 -164L1204 -69Q1176 -44 1141.0 -26.0Q1106 -8 1069.0 1.0Q1032 10 995 10Z" fill="#0D2B3E"/><path d="M1574 10Q1488 10 1423.5 -25.0Q1359 -60 1323.5 -121.0Q1288 -182 1288 -260Q1288 -322 1308.0 -373.5Q1328 -425 1364.0 -462.0Q1400 -499 1449.5 -519.5Q1499 -540 1558 -540Q1612 -540 1657.5 -520.5Q1703 -501 1736.5 -465.5Q1770 -430 1788.0 -382.0Q1806 -334 1805 -277L1804 -233H1379L1356 -321H1687L1670 -303V-324Q1668 -352 1652.5 -373.0Q1637 -394 1613.0 -406.5Q1589 -419 1560 -419Q1515 -419 1484.5 -401.5Q1454 -384 1438.5 -351.5Q1423 -319 1423 -271Q1423 -224 1443.0 -188.5Q1463 -153 1500.5 -134.0Q1538 -115 1589 -115Q1624 -115 1653.0 -126.0Q1682 -137 1716 -164L1783 -69Q1755 -44 1720.0 -26.0Q1685 -8 1648.0 1.0Q1611 10 1574 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M2421 10Q2335 10 2270.5 -25.0Q2206 -60 2170.5 -121.0Q2135 -182 2135 -260Q2135 -322 2155.0 -373.5Q2175 -425 2211.0 -462.0Q2247 -499 2296.5 -519.5Q2346 -540 2405 -540Q2459 -540 2504.5 -520.5Q2550 -501 2583.5 -465.5Q2617 -430 2635.0 -382.0Q2653 -334 2652 -277L2651 -233H2226L2203 -321H2534L2517 -303V-324Q2515 -352 2499.5 -373.0Q2484 -394 2460.0 -406.5Q2436 -419 2407 -419Q2362 -419 2331.5 -401.5Q2301 -384 2285.5 -351.5Q2270 -319 2270 -271Q2270 -224 2290.0 -188.5Q2310 -153 2347.5 -134.0Q2385 -115 2436 -115Q2471 -115 2500.0 -126.0Q2529 -137 2563 -164L2630 -69Q2602 -44 2567.0 -26.0Q2532 -8 2495.0 1.0Q2458 10 2421 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3042 0V-331Q3042 -373 3016.5 -395.5Q2991 -418 2948 -418Q2907 -418 2875.0 -402.0Q2843 -386 2815 -352L2728 -436Q2776 -486 2835.5 -513.0Q2895 -540 2965 -540Q3029 -540 3076.5 -520.0Q3124 -500 3150.0 -460.0Q3176 -420 3176 -359V0ZM2897 10Q2847 10 2806.5 -10.0Q2766 -30 2742.5 -65.5Q2719 -101 2719 -149Q2719 -190 2734.0 -221.5Q2749 -253 2778.5 -273.5Q2808 -294 2852.5 -305.0Q2897 -316 2956 -316H3112L3103 -221H2954Q2930 -221 2911.5 -217.0Q2893 -213 2880.5 -204.0Q2868 -195 2861.5 -183.0Q2855 -171 2855 -155Q2855 -138 2864.0 -125.0Q2873 -112 2888.5 -105.0Q2904 -98 2924 -98Q2953 -98 2979.5 -108.0Q3006 -118 3027.0 -136.0Q3048 -154 3060 -177L3087 -106Q3066 -72 3036.0 -46.0Q3006 -20 2971.0 -5.0Q2936 10 2897 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3296 0V-529H3433L3438 -359L3414 -395Q3427 -435 3453.5 -468.0Q3480 -501 3516.5 -520.5Q3553 -540 3593 -540Q3611 -540 3626.5 -537.5Q3642 -535 3653 -530L3615 -375Q3604 -380 3586.5 -384.5Q3569 -389 3551 -389Q3528 -389 3507.5 -380.5Q3487 -372 3471.5 -356.5Q3456 -341 3447.5 -320.0Q3439 -299 3439 -273V0Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3726 0V-529H3863L3867 -421L3839 -409Q3849 -445 3878.0 -474.5Q3907 -504 3947.0 -522.0Q3987 -540 4030 -540Q4090 -540 4130.5 -516.0Q4171 -492 4191.5 -443.5Q4212 -395 4212 -323V0H4070V-313Q4070 -349 4060.0 -373.0Q4050 -397 4030.0 -408.0Q4010 -419 3979 -418Q3955 -418 3935.0 -410.5Q3915 -403 3899.5 -389.0Q3884 -375 3876.0 -357.0Q3868 -339 3868 -317V0H3797Q3775 0 3757.0 0.0Q3739 0 3726 0Z" fill="#0D2B3E"/><g transform="translate(1883.1,-740.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#0D2B3E"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="cap">Mono · one-colour print</span></div>
+    <div class="tile paper"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="-60 -820 2878 1130" data-w="2878" data-h="1130"><path d="M328 247Q244 247 185.5 225.0Q127 203 91.0 166.0Q55 129 39.0 83.0Q23 37 23 -10Q23 -51 34.0 -108.0Q45 -165 71 -227L189 -190Q173 -142 166.0 -106.0Q159 -70 159 -43Q159 7 181.5 41.0Q204 75 246.5 92.0Q289 109 348 109Q380 109 412.0 100.5Q444 92 470.5 76.0Q497 60 513.0 37.0Q529 14 529 -16Q529 -37 523.0 -66.0Q517 -95 503.0 -135.0Q489 -175 463 -228L573 -361Q611 -292 628.5 -233.5Q646 -175 651.5 -131.0Q657 -87 657 -59Q657 36 617.0 104.5Q577 173 503.5 210.0Q430 247 328 247ZM333 -345 236 -443 329 -541 426 -443Z" fill="#0D2B3E"/><path d="M825 247Q781 247 728.5 228.5Q676 210 632 174L677 84Q715 96 744.5 102.5Q774 109 800 109Q856 109 898.5 86.0Q941 63 965.0 24.0Q989 -15 989 -62Q989 -93 980.0 -114.0Q971 -135 957.0 -155.0Q943 -175 926 -201L1115 -106Q1115 -95 1115.0 -84.0Q1115 -73 1115 -62Q1115 -28 1105.0 13.0Q1095 54 1073.5 95.0Q1052 136 1018.0 171.0Q984 206 936.0 226.5Q888 247 825 247ZM1202 0Q1167 0 1136.5 -7.0Q1106 -14 1080.0 -28.5Q1054 -43 1030.5 -66.0Q1007 -89 983 -121L856 -295L966 -431L1095 -208Q1111 -182 1124.0 -166.5Q1137 -151 1155.0 -145.0Q1173 -139 1202 -139H1212V0Z" fill="#0D2B3E"/><path d="M1212 0V-139H1345Q1351 -155 1356.0 -185.0Q1361 -215 1364.5 -247.5Q1368 -280 1368 -304L1534 -362Q1517 -290 1500.0 -229.0Q1483 -168 1459.5 -112.5Q1436 -57 1400 0ZM1604 0Q1540 0 1494.5 -12.5Q1449 -25 1417.5 -42.5Q1386 -60 1362 -76L1437 -165Q1453 -156 1473.0 -150.5Q1493 -145 1517.5 -142.0Q1542 -139 1568 -139H1607V0ZM1212 -139H1222V0H1212Q1182 0 1182 -70Q1182 -139 1212 -139ZM1321 260 1224 162 1315 64 1412 162ZM1495 260 1398 162 1491 64 1588 162Z" fill="#0D2B3E"/><path d="M1825 -139H1945V0H1825ZM1607 0V-139H1713V-740H1855V0ZM1607 -139H1617V0H1607Q1577 0 1577 -70Q1577 -139 1607 -139Z" fill="#FF6257"/><path d="M1945 0V-139H2142Q2137 -185 2114.5 -232.5Q2092 -280 2058 -330L2184 -459Q2214 -400 2236.0 -332.0Q2258 -264 2259.0 -182.5Q2260 -101 2225 0ZM1945 -139H1955V0H1945Q1915 0 1915 -70Q1915 -139 1945 -139ZM2042 260 1945 162 2036 64 2133 162ZM2216 260 2119 162 2212 64 2309 162Z" fill="#0D2B3E"/><path d="M2415 247Q2388 247 2356.0 240.0Q2324 233 2294 219L2333 103Q2349 106 2363.0 107.5Q2377 109 2390 109Q2448 109 2490.0 86.5Q2532 64 2555.5 23.0Q2579 -18 2579 -74Q2579 -100 2567.0 -127.5Q2555 -155 2526.5 -194.5Q2498 -234 2446 -295L2556 -431Q2609 -359 2642.0 -299.0Q2675 -239 2690.0 -186.5Q2705 -134 2705 -81Q2705 -42 2695.5 2.5Q2686 47 2665.0 90.0Q2644 133 2610.5 168.5Q2577 204 2528.0 225.5Q2479 247 2415 247Z" fill="#0D2B3E"/></svg><span class="cap">Arabic wordmark</span></div>
+    <div class="tile night"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="-60 -820 2878 1130" data-w="2878" data-h="1130"><path d="M328 247Q244 247 185.5 225.0Q127 203 91.0 166.0Q55 129 39.0 83.0Q23 37 23 -10Q23 -51 34.0 -108.0Q45 -165 71 -227L189 -190Q173 -142 166.0 -106.0Q159 -70 159 -43Q159 7 181.5 41.0Q204 75 246.5 92.0Q289 109 348 109Q380 109 412.0 100.5Q444 92 470.5 76.0Q497 60 513.0 37.0Q529 14 529 -16Q529 -37 523.0 -66.0Q517 -95 503.0 -135.0Q489 -175 463 -228L573 -361Q611 -292 628.5 -233.5Q646 -175 651.5 -131.0Q657 -87 657 -59Q657 36 617.0 104.5Q577 173 503.5 210.0Q430 247 328 247ZM333 -345 236 -443 329 -541 426 -443Z" fill="#FFFFFF"/><path d="M825 247Q781 247 728.5 228.5Q676 210 632 174L677 84Q715 96 744.5 102.5Q774 109 800 109Q856 109 898.5 86.0Q941 63 965.0 24.0Q989 -15 989 -62Q989 -93 980.0 -114.0Q971 -135 957.0 -155.0Q943 -175 926 -201L1115 -106Q1115 -95 1115.0 -84.0Q1115 -73 1115 -62Q1115 -28 1105.0 13.0Q1095 54 1073.5 95.0Q1052 136 1018.0 171.0Q984 206 936.0 226.5Q888 247 825 247ZM1202 0Q1167 0 1136.5 -7.0Q1106 -14 1080.0 -28.5Q1054 -43 1030.5 -66.0Q1007 -89 983 -121L856 -295L966 -431L1095 -208Q1111 -182 1124.0 -166.5Q1137 -151 1155.0 -145.0Q1173 -139 1202 -139H1212V0Z" fill="#FFFFFF"/><path d="M1212 0V-139H1345Q1351 -155 1356.0 -185.0Q1361 -215 1364.5 -247.5Q1368 -280 1368 -304L1534 -362Q1517 -290 1500.0 -229.0Q1483 -168 1459.5 -112.5Q1436 -57 1400 0ZM1604 0Q1540 0 1494.5 -12.5Q1449 -25 1417.5 -42.5Q1386 -60 1362 -76L1437 -165Q1453 -156 1473.0 -150.5Q1493 -145 1517.5 -142.0Q1542 -139 1568 -139H1607V0ZM1212 -139H1222V0H1212Q1182 0 1182 -70Q1182 -139 1212 -139ZM1321 260 1224 162 1315 64 1412 162ZM1495 260 1398 162 1491 64 1588 162Z" fill="#FFFFFF"/><path d="M1825 -139H1945V0H1825ZM1607 0V-139H1713V-740H1855V0ZM1607 -139H1617V0H1607Q1577 0 1577 -70Q1577 -139 1607 -139Z" fill="#FF6257"/><path d="M1945 0V-139H2142Q2137 -185 2114.5 -232.5Q2092 -280 2058 -330L2184 -459Q2214 -400 2236.0 -332.0Q2258 -264 2259.0 -182.5Q2260 -101 2225 0ZM1945 -139H1955V0H1945Q1915 0 1915 -70Q1915 -139 1945 -139ZM2042 260 1945 162 2036 64 2133 162ZM2216 260 2119 162 2212 64 2309 162Z" fill="#FFFFFF"/><path d="M2415 247Q2388 247 2356.0 240.0Q2324 233 2294 219L2333 103Q2349 106 2363.0 107.5Q2377 109 2390 109Q2448 109 2490.0 86.5Q2532 64 2555.5 23.0Q2579 -18 2579 -74Q2579 -100 2567.0 -127.5Q2555 -155 2526.5 -194.5Q2498 -234 2446 -295L2556 -431Q2609 -359 2642.0 -299.0Q2675 -239 2690.0 -186.5Q2705 -134 2705 -81Q2705 -42 2695.5 2.5Q2686 47 2665.0 90.0Q2644 133 2610.5 168.5Q2577 204 2528.0 225.5Q2479 247 2415 247Z" fill="#FFFFFF"/></svg><span class="cap">Arabic · reversed</span></div>
+  </div>
+  <h3>Lockups</h3>
+  <div class="grid">
+    <div class="tile paper" style="grid-column: span 2"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="-60 -820 7693.0526315789475 1130" data-w="7693.0526315789475" data-h="1130"><path d="M91 0V-700H401Q467 -700 519.5 -671.0Q572 -642 603.0 -591.5Q634 -541 634 -476Q634 -413 603.0 -362.0Q572 -311 519.5 -281.0Q467 -251 401 -251H235V0ZM489 0 311 -317 464 -342 662 1ZM235 -374H395Q422 -374 442.5 -386.5Q463 -399 474.5 -421.0Q486 -443 486 -471Q486 -500 472.0 -522.5Q458 -545 433.0 -557.5Q408 -570 375 -570H235Z" fill="#0D2B3E"/><path d="M995 10Q909 10 844.5 -25.0Q780 -60 744.5 -121.0Q709 -182 709 -260Q709 -322 729.0 -373.5Q749 -425 785.0 -462.0Q821 -499 870.5 -519.5Q920 -540 979 -540Q1033 -540 1078.5 -520.5Q1124 -501 1157.5 -465.5Q1191 -430 1209.0 -382.0Q1227 -334 1226 -277L1225 -233H800L777 -321H1108L1091 -303V-324Q1089 -352 1073.5 -373.0Q1058 -394 1034.0 -406.5Q1010 -419 981 -419Q936 -419 905.5 -401.5Q875 -384 859.5 -351.5Q844 -319 844 -271Q844 -224 864.0 -188.5Q884 -153 921.5 -134.0Q959 -115 1010 -115Q1045 -115 1074.0 -126.0Q1103 -137 1137 -164L1204 -69Q1176 -44 1141.0 -26.0Q1106 -8 1069.0 1.0Q1032 10 995 10Z" fill="#0D2B3E"/><path d="M1574 10Q1488 10 1423.5 -25.0Q1359 -60 1323.5 -121.0Q1288 -182 1288 -260Q1288 -322 1308.0 -373.5Q1328 -425 1364.0 -462.0Q1400 -499 1449.5 -519.5Q1499 -540 1558 -540Q1612 -540 1657.5 -520.5Q1703 -501 1736.5 -465.5Q1770 -430 1788.0 -382.0Q1806 -334 1805 -277L1804 -233H1379L1356 -321H1687L1670 -303V-324Q1668 -352 1652.5 -373.0Q1637 -394 1613.0 -406.5Q1589 -419 1560 -419Q1515 -419 1484.5 -401.5Q1454 -384 1438.5 -351.5Q1423 -319 1423 -271Q1423 -224 1443.0 -188.5Q1463 -153 1500.5 -134.0Q1538 -115 1589 -115Q1624 -115 1653.0 -126.0Q1682 -137 1716 -164L1783 -69Q1755 -44 1720.0 -26.0Q1685 -8 1648.0 1.0Q1611 10 1574 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M2421 10Q2335 10 2270.5 -25.0Q2206 -60 2170.5 -121.0Q2135 -182 2135 -260Q2135 -322 2155.0 -373.5Q2175 -425 2211.0 -462.0Q2247 -499 2296.5 -519.5Q2346 -540 2405 -540Q2459 -540 2504.5 -520.5Q2550 -501 2583.5 -465.5Q2617 -430 2635.0 -382.0Q2653 -334 2652 -277L2651 -233H2226L2203 -321H2534L2517 -303V-324Q2515 -352 2499.5 -373.0Q2484 -394 2460.0 -406.5Q2436 -419 2407 -419Q2362 -419 2331.5 -401.5Q2301 -384 2285.5 -351.5Q2270 -319 2270 -271Q2270 -224 2290.0 -188.5Q2310 -153 2347.5 -134.0Q2385 -115 2436 -115Q2471 -115 2500.0 -126.0Q2529 -137 2563 -164L2630 -69Q2602 -44 2567.0 -26.0Q2532 -8 2495.0 1.0Q2458 10 2421 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3042 0V-331Q3042 -373 3016.5 -395.5Q2991 -418 2948 -418Q2907 -418 2875.0 -402.0Q2843 -386 2815 -352L2728 -436Q2776 -486 2835.5 -513.0Q2895 -540 2965 -540Q3029 -540 3076.5 -520.0Q3124 -500 3150.0 -460.0Q3176 -420 3176 -359V0ZM2897 10Q2847 10 2806.5 -10.0Q2766 -30 2742.5 -65.5Q2719 -101 2719 -149Q2719 -190 2734.0 -221.5Q2749 -253 2778.5 -273.5Q2808 -294 2852.5 -305.0Q2897 -316 2956 -316H3112L3103 -221H2954Q2930 -221 2911.5 -217.0Q2893 -213 2880.5 -204.0Q2868 -195 2861.5 -183.0Q2855 -171 2855 -155Q2855 -138 2864.0 -125.0Q2873 -112 2888.5 -105.0Q2904 -98 2924 -98Q2953 -98 2979.5 -108.0Q3006 -118 3027.0 -136.0Q3048 -154 3060 -177L3087 -106Q3066 -72 3036.0 -46.0Q3006 -20 2971.0 -5.0Q2936 10 2897 10Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3296 0V-529H3433L3438 -359L3414 -395Q3427 -435 3453.5 -468.0Q3480 -501 3516.5 -520.5Q3553 -540 3593 -540Q3611 -540 3626.5 -537.5Q3642 -535 3653 -530L3615 -375Q3604 -380 3586.5 -384.5Q3569 -389 3551 -389Q3528 -389 3507.5 -380.5Q3487 -372 3471.5 -356.5Q3456 -341 3447.5 -320.0Q3439 -299 3439 -273V0Z" fill="#0D2B3E"/><path transform="translate(126.05263157894751,0)" d="M3726 0V-529H3863L3867 -421L3839 -409Q3849 -445 3878.0 -474.5Q3907 -504 3947.0 -522.0Q3987 -540 4030 -540Q4090 -540 4130.5 -516.0Q4171 -492 4191.5 -443.5Q4212 -395 4212 -323V0H4070V-313Q4070 -349 4060.0 -373.0Q4050 -397 4030.0 -408.0Q4010 -419 3979 -418Q3955 -418 3935.0 -410.5Q3915 -403 3899.5 -389.0Q3884 -375 3876.0 -357.0Q3868 -339 3868 -317V0H3797Q3775 0 3757.0 0.0Q3739 0 3726 0Z" fill="#0D2B3E"/><g transform="translate(1883.1,-740.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#FF6257"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g><g transform="translate(4815.0526315789475,0)"><path d="M328 247Q244 247 185.5 225.0Q127 203 91.0 166.0Q55 129 39.0 83.0Q23 37 23 -10Q23 -51 34.0 -108.0Q45 -165 71 -227L189 -190Q173 -142 166.0 -106.0Q159 -70 159 -43Q159 7 181.5 41.0Q204 75 246.5 92.0Q289 109 348 109Q380 109 412.0 100.5Q444 92 470.5 76.0Q497 60 513.0 37.0Q529 14 529 -16Q529 -37 523.0 -66.0Q517 -95 503.0 -135.0Q489 -175 463 -228L573 -361Q611 -292 628.5 -233.5Q646 -175 651.5 -131.0Q657 -87 657 -59Q657 36 617.0 104.5Q577 173 503.5 210.0Q430 247 328 247ZM333 -345 236 -443 329 -541 426 -443Z" fill="#0D2B3E"/><path d="M825 247Q781 247 728.5 228.5Q676 210 632 174L677 84Q715 96 744.5 102.5Q774 109 800 109Q856 109 898.5 86.0Q941 63 965.0 24.0Q989 -15 989 -62Q989 -93 980.0 -114.0Q971 -135 957.0 -155.0Q943 -175 926 -201L1115 -106Q1115 -95 1115.0 -84.0Q1115 -73 1115 -62Q1115 -28 1105.0 13.0Q1095 54 1073.5 95.0Q1052 136 1018.0 171.0Q984 206 936.0 226.5Q888 247 825 247ZM1202 0Q1167 0 1136.5 -7.0Q1106 -14 1080.0 -28.5Q1054 -43 1030.5 -66.0Q1007 -89 983 -121L856 -295L966 -431L1095 -208Q1111 -182 1124.0 -166.5Q1137 -151 1155.0 -145.0Q1173 -139 1202 -139H1212V0Z" fill="#0D2B3E"/><path d="M1212 0V-139H1345Q1351 -155 1356.0 -185.0Q1361 -215 1364.5 -247.5Q1368 -280 1368 -304L1534 -362Q1517 -290 1500.0 -229.0Q1483 -168 1459.5 -112.5Q1436 -57 1400 0ZM1604 0Q1540 0 1494.5 -12.5Q1449 -25 1417.5 -42.5Q1386 -60 1362 -76L1437 -165Q1453 -156 1473.0 -150.5Q1493 -145 1517.5 -142.0Q1542 -139 1568 -139H1607V0ZM1212 -139H1222V0H1212Q1182 0 1182 -70Q1182 -139 1212 -139ZM1321 260 1224 162 1315 64 1412 162ZM1495 260 1398 162 1491 64 1588 162Z" fill="#0D2B3E"/><path d="M1825 -139H1945V0H1825ZM1607 0V-139H1713V-740H1855V0ZM1607 -139H1617V0H1607Q1577 0 1577 -70Q1577 -139 1607 -139Z" fill="#FF6257"/><path d="M1945 0V-139H2142Q2137 -185 2114.5 -232.5Q2092 -280 2058 -330L2184 -459Q2214 -400 2236.0 -332.0Q2258 -264 2259.0 -182.5Q2260 -101 2225 0ZM1945 -139H1955V0H1945Q1915 0 1915 -70Q1915 -139 1945 -139ZM2042 260 1945 162 2036 64 2133 162ZM2216 260 2119 162 2212 64 2309 162Z" fill="#0D2B3E"/><path d="M2415 247Q2388 247 2356.0 240.0Q2324 233 2294 219L2333 103Q2349 106 2363.0 107.5Q2377 109 2390 109Q2448 109 2490.0 86.5Q2532 64 2555.5 23.0Q2579 -18 2579 -74Q2579 -100 2567.0 -127.5Q2555 -155 2526.5 -194.5Q2498 -234 2446 -295L2556 -431Q2609 -359 2642.0 -299.0Q2675 -239 2690.0 -186.5Q2705 -134 2705 -81Q2705 -42 2695.5 2.5Q2686 47 2665.0 90.0Q2644 133 2610.5 168.5Q2577 204 2528.0 225.5Q2479 247 2415 247Z" fill="#0D2B3E"/></g></svg><span class="cap">Bilingual · English leads, Arabic follows on the right</span></div>
+    <div class="tile paper"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="-60 -60 4515.0526315789475 3694.0" data-w="4515.0526315789475" data-h="3694.0"><g transform="translate(1957.5263157894738,0)"><g transform="translate(0.0,0.0) scale(1.6)"><rect width="300" height="740" rx="92" fill="#FF6257"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></g><g transform="translate(0.0,2264.0)"><path d="M91 0V-700H401Q467 -700 519.5 -671.0Q572 -642 603.0 -591.5Q634 -541 634 -476Q634 -413 603.0 -362.0Q572 -311 519.5 -281.0Q467 -251 401 -251H235V0ZM489 0 311 -317 464 -342 662 1ZM235 -374H395Q422 -374 442.5 -386.5Q463 -399 474.5 -421.0Q486 -443 486 -471Q486 -500 472.0 -522.5Q458 -545 433.0 -557.5Q408 -570 375 -570H235Z" fill="#0D2B3E"/><path d="M995 10Q909 10 844.5 -25.0Q780 -60 744.5 -121.0Q709 -182 709 -260Q709 -322 729.0 -373.5Q749 -425 785.0 -462.0Q821 -499 870.5 -519.5Q920 -540 979 -540Q1033 -540 1078.5 -520.5Q1124 -501 1157.5 -465.5Q1191 -430 1209.0 -382.0Q1227 -334 1226 -277L1225 -233H800L777 -321H1108L1091 -303V-324Q1089 -352 1073.5 -373.0Q1058 -394 1034.0 -406.5Q1010 -419 981 -419Q936 -419 905.5 -401.5Q875 -384 859.5 -351.5Q844 -319 844 -271Q844 -224 864.0 -188.5Q884 -153 921.5 -134.0Q959 -115 1010 -115Q1045 -115 1074.0 -126.0Q1103 -137 1137 -164L1204 -69Q1176 -44 1141.0 -26.0Q1106 -8 1069.0 1.0Q1032 10 995 10Z" fill="#0D2B3E"/><path d="M1574 10Q1488 10 1423.5 -25.0Q1359 -60 1323.5 -121.0Q1288 -182 1288 -260Q1288 -322 1308.0 -373.5Q1328 -425 1364.0 -462.0Q1400 -499 1449.5 -519.5Q1499 -540 1558 -540Q1612 -540 1657.5 -520.5Q1703 -501 1736.5 -465.5Q1770 -430 1788.0 -382.0Q1806 -334 1805 -277L1804 -233H1379L1356 -321H1687L1670 -303V-324Q1668 -352 1652.5 -373.0Q1637 -394 1613.0 -406.5Q1589 -419 1560 -419Q1515 -419 1484.5 -401.5Q1454 -384 1438.5 -351.5Q1423 -319 1423 -271Q1423 -224 1443.0 -188.5Q1463 -153 1500.5 -134.0Q1538 -115 1589 -115Q1624 -115 1653.0 -126.0Q1682 -137 1716 -164L1783 -69Q1755 -44 1720.0 -26.0Q1685 -8 1648.0 1.0Q1611 10 1574 10Z" fill="#0D2B3E"/><path d="M1903 0V-740H2045V0Z" fill="#0D2B3E"/><path d="M2421 10Q2335 10 2270.5 -25.0Q2206 -60 2170.5 -121.0Q2135 -182 2135 -260Q2135 -322 2155.0 -373.5Q2175 -425 2211.0 -462.0Q2247 -499 2296.5 -519.5Q2346 -540 2405 -540Q2459 -540 2504.5 -520.5Q2550 -501 2583.5 -465.5Q2617 -430 2635.0 -382.0Q2653 -334 2652 -277L2651 -233H2226L2203 -321H2534L2517 -303V-324Q2515 -352 2499.5 -373.0Q2484 -394 2460.0 -406.5Q2436 -419 2407 -419Q2362 -419 2331.5 -401.5Q2301 -384 2285.5 -351.5Q2270 -319 2270 -271Q2270 -224 2290.0 -188.5Q2310 -153 2347.5 -134.0Q2385 -115 2436 -115Q2471 -115 2500.0 -126.0Q2529 -137 2563 -164L2630 -69Q2602 -44 2567.0 -26.0Q2532 -8 2495.0 1.0Q2458 10 2421 10Z" fill="#0D2B3E"/><path d="M3042 0V-331Q3042 -373 3016.5 -395.5Q2991 -418 2948 -418Q2907 -418 2875.0 -402.0Q2843 -386 2815 -352L2728 -436Q2776 -486 2835.5 -513.0Q2895 -540 2965 -540Q3029 -540 3076.5 -520.0Q3124 -500 3150.0 -460.0Q3176 -420 3176 -359V0ZM2897 10Q2847 10 2806.5 -10.0Q2766 -30 2742.5 -65.5Q2719 -101 2719 -149Q2719 -190 2734.0 -221.5Q2749 -253 2778.5 -273.5Q2808 -294 2852.5 -305.0Q2897 -316 2956 -316H3112L3103 -221H2954Q2930 -221 2911.5 -217.0Q2893 -213 2880.5 -204.0Q2868 -195 2861.5 -183.0Q2855 -171 2855 -155Q2855 -138 2864.0 -125.0Q2873 -112 2888.5 -105.0Q2904 -98 2924 -98Q2953 -98 2979.5 -108.0Q3006 -118 3027.0 -136.0Q3048 -154 3060 -177L3087 -106Q3066 -72 3036.0 -46.0Q3006 -20 2971.0 -5.0Q2936 10 2897 10Z" fill="#0D2B3E"/><path d="M3296 0V-529H3433L3438 -359L3414 -395Q3427 -435 3453.5 -468.0Q3480 -501 3516.5 -520.5Q3553 -540 3593 -540Q3611 -540 3626.5 -537.5Q3642 -535 3653 -530L3615 -375Q3604 -380 3586.5 -384.5Q3569 -389 3551 -389Q3528 -389 3507.5 -380.5Q3487 -372 3471.5 -356.5Q3456 -341 3447.5 -320.0Q3439 -299 3439 -273V0Z" fill="#0D2B3E"/><path d="M3726 0V-529H3863L3867 -421L3839 -409Q3849 -445 3878.0 -474.5Q3907 -504 3947.0 -522.0Q3987 -540 4030 -540Q4090 -540 4130.5 -516.0Q4171 -492 4191.5 -443.5Q4212 -395 4212 -323V0H4070V-313Q4070 -349 4060.0 -373.0Q4050 -397 4030.0 -408.0Q4010 -419 3979 -418Q3955 -418 3935.0 -410.5Q3915 -403 3899.5 -389.0Q3884 -375 3876.0 -357.0Q3868 -339 3868 -317V0H3797Q3775 0 3757.0 0.0Q3739 0 3726 0Z" fill="#0D2B3E"/></g><g transform="translate(818.5263157894738,3274.0)"><path d="M328 247Q244 247 185.5 225.0Q127 203 91.0 166.0Q55 129 39.0 83.0Q23 37 23 -10Q23 -51 34.0 -108.0Q45 -165 71 -227L189 -190Q173 -142 166.0 -106.0Q159 -70 159 -43Q159 7 181.5 41.0Q204 75 246.5 92.0Q289 109 348 109Q380 109 412.0 100.5Q444 92 470.5 76.0Q497 60 513.0 37.0Q529 14 529 -16Q529 -37 523.0 -66.0Q517 -95 503.0 -135.0Q489 -175 463 -228L573 -361Q611 -292 628.5 -233.5Q646 -175 651.5 -131.0Q657 -87 657 -59Q657 36 617.0 104.5Q577 173 503.5 210.0Q430 247 328 247ZM333 -345 236 -443 329 -541 426 -443Z" fill="#0D2B3E"/><path d="M825 247Q781 247 728.5 228.5Q676 210 632 174L677 84Q715 96 744.5 102.5Q774 109 800 109Q856 109 898.5 86.0Q941 63 965.0 24.0Q989 -15 989 -62Q989 -93 980.0 -114.0Q971 -135 957.0 -155.0Q943 -175 926 -201L1115 -106Q1115 -95 1115.0 -84.0Q1115 -73 1115 -62Q1115 -28 1105.0 13.0Q1095 54 1073.5 95.0Q1052 136 1018.0 171.0Q984 206 936.0 226.5Q888 247 825 247ZM1202 0Q1167 0 1136.5 -7.0Q1106 -14 1080.0 -28.5Q1054 -43 1030.5 -66.0Q1007 -89 983 -121L856 -295L966 -431L1095 -208Q1111 -182 1124.0 -166.5Q1137 -151 1155.0 -145.0Q1173 -139 1202 -139H1212V0Z" fill="#0D2B3E"/><path d="M1212 0V-139H1345Q1351 -155 1356.0 -185.0Q1361 -215 1364.5 -247.5Q1368 -280 1368 -304L1534 -362Q1517 -290 1500.0 -229.0Q1483 -168 1459.5 -112.5Q1436 -57 1400 0ZM1604 0Q1540 0 1494.5 -12.5Q1449 -25 1417.5 -42.5Q1386 -60 1362 -76L1437 -165Q1453 -156 1473.0 -150.5Q1493 -145 1517.5 -142.0Q1542 -139 1568 -139H1607V0ZM1212 -139H1222V0H1212Q1182 0 1182 -70Q1182 -139 1212 -139ZM1321 260 1224 162 1315 64 1412 162ZM1495 260 1398 162 1491 64 1588 162Z" fill="#0D2B3E"/><path d="M1825 -139H1945V0H1825ZM1607 0V-139H1713V-740H1855V0ZM1607 -139H1617V0H1607Q1577 0 1577 -70Q1577 -139 1607 -139Z" fill="#FF6257"/><path d="M1945 0V-139H2142Q2137 -185 2114.5 -232.5Q2092 -280 2058 -330L2184 -459Q2214 -400 2236.0 -332.0Q2258 -264 2259.0 -182.5Q2260 -101 2225 0ZM1945 -139H1955V0H1945Q1915 0 1915 -70Q1915 -139 1945 -139ZM2042 260 1945 162 2036 64 2133 162ZM2216 260 2119 162 2212 64 2309 162Z" fill="#0D2B3E"/><path d="M2415 247Q2388 247 2356.0 240.0Q2324 233 2294 219L2333 103Q2349 106 2363.0 107.5Q2377 109 2390 109Q2448 109 2490.0 86.5Q2532 64 2555.5 23.0Q2579 -18 2579 -74Q2579 -100 2567.0 -127.5Q2555 -155 2526.5 -194.5Q2498 -234 2446 -295L2556 -431Q2609 -359 2642.0 -299.0Q2675 -239 2690.0 -186.5Q2705 -134 2705 -81Q2705 -42 2695.5 2.5Q2686 47 2665.0 90.0Q2644 133 2610.5 168.5Q2577 204 2528.0 225.5Q2479 247 2415 247Z" fill="#0D2B3E"/></g></svg><span class="cap">Stacked · covers, badges, event banners</span></div>
+  </div>
+  <h3>Mark, app icon and avatar</h3>
+  <div class="grid">
+    <div class="tile paper mark"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 860" data-w="420" data-h="860"><g transform="translate(60.0,60.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#FF6257"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="cap">Mark · coral</span></div>
+    <div class="tile night mark"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 860" data-w="420" data-h="860"><g transform="translate(60.0,60.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#FFFFFF"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#0D2B3E" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="cap">Mark · on night</span></div>
+    <div class="tile paper mark"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 860" data-w="420" data-h="860"><g transform="translate(60.0,60.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#0D2B3E"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="cap">Mark · ink</span></div>
+    <div class="tile paper icon"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" data-w="1024" data-h="1024"><rect width="1024" height="1024" rx="230" fill="#0D2B3E"/><g transform="translate(362.0,142.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#FF6257"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="cap">App icon · primary</span></div>
+    <div class="tile paper icon"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" data-w="1024" data-h="1024"><rect width="1024" height="1024" rx="230" fill="#FF6257"/><g transform="translate(362.0,142.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#FFFFFF"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FF6257" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="cap">App icon · coral alt</span></div>
+    <div class="tile paper icon"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" data-w="1024" data-h="1024"><circle cx="512" cy="512" r="512" fill="#0D2B3E"/><g transform="translate(362.0,142.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#FF6257"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="cap">Social avatar</span></div>
+  </div>
+  <h3>Rules</h3>
+  <div class="grid">
+    <div class="card"><h4>Clear space</h4><p>Keep a margin equal to the card's width (the "l") on every side of any wordmark or lockup. Nothing else enters that space.</p></div>
+    <div class="card"><h4>Minimum size</h4><p>Display wordmark: 120 px or 30 mm wide. Below that, switch to the text wordmark. Mark alone: 24 px or 6 mm tall. App icon: supplied at 1024 px.</p></div>
+    <div class="card"><h4>Colour</h4><p>Ink on paper, white on night, coral card in both. Mono ink and mono white exist for print and engraving. No other colourways.</p></div>
+    <div class="card"><h4>Bilingual order</h4><p>Left-to-right surfaces: English then Arabic. Right-to-left surfaces (Arabic UI, Arabic print): Arabic then English. Never stack one language smaller than the other.</p></div>
+  </div>
+  <h3>Do not</h3>
+  <ul class="misuse">
+    <li>Put a play triangle, a phone outline or a film strip anywhere near the mark. The card already says "reel".</li>
+    <li>Tilt, outline, bevel, add gradients or drop shadows, or recolour the check.</li>
+    <li>Set the name in another typeface, in all caps, or as "ReeLearn" / "Reel Learn".</li>
+    <li>Use the display wordmark below 120 px wide; the check turns into noise.</li>
+    <li>Place the coral card on a coral background, or ink on night, where it disappears.</li>
+  </ul>
+</section>
+
+<section id="colour">
+  <header><div class="eyebrow">03 · Colour</div><p>A deep ink, a coral that belongs to the reel, and a mint that only ever means "correct". Everything else is paper.</p></header>
+  <h2>Ink carries, coral points, mint rewards</h2>
+  <div class="swatches">
+    <div class="sw" style="background:#0D2B3E;color:#fff"><b>Ink</b><code>#0D2B3E</code><small>Text, wordmark, admin surfaces, app icon ground</small></div>
+    <div class="sw" style="background:#FF6257;color:#fff"><b>Reel Coral</b><code>#FF6257</code><small>The card, the shared letter, primary buttons, progress</small></div>
+    <div class="sw" style="background:#2EC4B6;color:#0D2B3E"><b>Recall Mint</b><code>#2EC4B6</code><small>Correct answers, "done", streak kept. Nothing else.</small></div>
+    <div class="sw" style="background:#F6F7F5;color:#0D2B3E"><b>Paper</b><code>#F6F7F5</code><small>Light backgrounds, cards, documents</small></div>
+    <div class="sw" style="background:#081822;color:#fff"><b>Night</b><code>#081822</code><small>Reel player, dark mode, reversed logo</small></div>
+    <div class="sw" style="background:#5B6B78;color:#fff"><b>Slate</b><code>#5B6B78</code><small>Secondary text, captions, "not yet" states</small></div>
+  </div>
+  <h3>Proportion</h3>
+  <div class="ratio"><i style="flex:6;background:#0D2B3E"></i><i style="flex:3;background:#F6F7F5"></i><i style="flex:1;background:#FF6257"></i></div>
+  <p>Roughly 60 ink / 30 paper / 10 coral on any screen or page. Mint appears only as feedback, so it never shows in the layout before the person has done something. If a design uses mint decoratively, the feedback loses its meaning.</p>
+  <h3>Semantic rule: no red cross</h3>
+  <p>Reelearn never punishes a wrong answer with red. A missed question is shown in Slate with the right answer in Mint and a "see it again tomorrow" note. The brand's accent is warm, so red would also collide with it. Alerts that are not about learning (payment failed, upload rejected) use the admin console's standard amber <code>#D9822B</code> and critical <code>#C0392B</code>, never in the employee app.</p>
+  <h3>Contrast</h3>
+  <p>Ink on Paper 13.6:1 and white on Ink 12.4:1 pass every level. White on Reel Coral is 3.1:1, so coral buttons carry text at 16 px semibold or larger and coral is never used for body text. Ink on Mint is 8.3:1 for feedback chips.</p>
+</section>
+
+<section id="type">
+  <header><div class="eyebrow">04 · Typography</div><p>Two open-source families that were drawn for Arabic and Latin together, so a bilingual screen never looks like two fonts glued side by side.</p></header>
+  <h2>Readex Pro leads, Plex Sans Arabic reads</h2>
+  <div class="specimen">
+    <div class="card">
+      <span class="t-label">Readex Pro · display &amp; UI · 300–700</span>
+      <div class="t-display">Say their name twice.</div>
+      <div class="t-h">Today's reels · 3 of 5</div>
+      <div class="t-num">8 / 10</div>
+      <p>Wordmark, headlines, buttons, numbers, captions on video. Weights 500–600 for headings, 400 for UI labels. Large x-height keeps captions legible over moving footage.</p>
+    </div>
+    <div class="card" dir="rtl" lang="ar">
+      <span class="t-label" dir="ltr">Readex Pro Arabic · matched to the Latin</span>
+      <div class="t-display">قل اسمه مرتين.</div>
+      <div class="t-h">مقاطع اليوم · ٣ من ٥</div>
+      <div class="t-num">٨ / ١٠</div>
+      <p dir="rtl">الخط نفسه يحمل العربية والإنجليزية بوزن واحد وارتفاع واحد، فلا تبدو الشاشة ثنائية اللغة كأنها خطّان ملصقان جنبًا إلى جنب.</p>
+    </div>
+    <div class="card">
+      <span class="t-label">IBM Plex Sans Arabic · body · 400–600</span>
+      <p class="t-body">Long text, admin console tables, reports to HRDF, emails. Plex has the tabular figures and the narrow Arabic that dense tables need. Body 16 px, line height 1.6, measure 60–70 characters.</p>
+    </div>
+    <div class="card" dir="rtl" lang="ar">
+      <span class="t-label" dir="ltr">IBM Plex Sans Arabic · متن</span>
+      <p class="t-body">النصوص الطويلة، جداول لوحة الإدارة، تقارير صندوق تنمية الموارد البشرية، الرسائل. الأرقام الجدولية والعربية الضيقة في هذا الخط تناسب الجداول الكثيفة.</p>
+    </div>
+  </div>
+  <h3>Scale and numerals</h3>
+  <div class="scroll"><table>
+    <tr><th>Role</th><th>Face</th><th>Size / weight</th><th>Use</th></tr>
+    <tr><td>Display</td><td>Readex Pro</td><td>40–56 px · 600</td><td>Done screen, landing hero, deck titles</td></tr>
+    <tr><td>Heading</td><td>Readex Pro</td><td>24–28 px · 500</td><td>Section titles, reel titles</td></tr>
+    <tr><td>Caption on video</td><td>Readex Pro</td><td>18–20 px · 500, 1.3 lh</td><td>Burned-in captions, max two lines, ink plate at 70 %</td></tr>
+    <tr><td>Body</td><td>IBM Plex Sans Arabic</td><td>16 px · 400</td><td>All running text</td></tr>
+    <tr><td>Label</td><td>Readex Pro</td><td>12 px · 600 · +0.12 em caps</td><td>Chips, table heads, eyebrows</td></tr>
+    <tr><td>Numbers</td><td>Readex Pro, tabular</td><td>Any</td><td>Scores and KPIs; Western digits in English UI, Eastern Arabic digits (٠–٩) in Arabic UI, following the device locale</td></tr>
+  </table></div>
+</section>
+
+<section id="voice">
+  <header><div class="eyebrow">05 · Voice</div><p>How Reelearn writes in notifications, captions, admin screens and sales material, in both languages.</p></header>
+  <h2>Short, warm, and always says when you are done</h2>
+  <div class="voice">
+    <div class="card say"><h4>Say</h4><ul>
+      <li>"Today's reels" / "مقاطع اليوم"</li><li>"Done for today. See you tomorrow." / "خلصت اليوم. نشوفك بكرة."</li>
+      <li>"You remembered 8 of 10." / "تذكرت ٨ من ١٠."</li><li>"One minute, then back to the floor."</li>
+      <li>"Your team is ready on AML: 91 %."</li><li>"Not yet. Here is the answer; it comes back Thursday."</li>
+    </ul></div>
+    <div class="card avoid"><h4>Avoid</h4><ul>
+      <li>"Scroll", "binge", "addictive", "endless", "feed" in anything a buyer or employee reads</li>
+      <li>"TikTok for training" in the company's own words (journalists may say it; we do not)</li>
+      <li>"Mandatory", "overdue", "non-compliant" in the employee app</li>
+      <li>Streak shaming: "You lost your streak!" Use "Streak paused. Pick it up today."</li>
+      <li>Exclamation marks in Arabic or English beyond one per screen</li>
+      <li>Watch-time brags: "Employees spent 4,000 hours learning"</li>
+    </ul></div>
+  </div>
+  <h3>Three registers</h3>
+  <div class="grid">
+    <div class="card"><h4>Employee app · Gulf colloquial Arabic, plain English</h4><p>Second person, present tense, contractions allowed. Arabic uses light white dialect ("نشوفك بكرة"), never classical. Urdu, Hindi, Bengali and Tagalog strings are translated from the Arabic, not the English, so the warmth survives.</p></div>
+    <div class="card"><h4>Admin console · Modern Standard Arabic, neutral English</h4><p>Nouns over verbs, numbers with units, no jokes. "Weekly active learners: 1,204 (78 %)". Arabic in MSA so it can be pasted into an HRDF submission.</p></div>
+    <div class="card"><h4>Sales and HRDF material · evidence first</h4><p>Lead with the recall score and the operational KPI, then the format. Cite the study when claiming anything about memory. Never claim "proven" without a control group.</p></div>
+  </div>
+</section>
+
+<section id="apps">
+  <header><div class="eyebrow">06 · Applications</div><p>The first four surfaces, built from the system above. Company names and numbers here are placeholders.</p></header>
+  <h2>Where people meet the brand</h2>
+  <div class="apps">
+    <div>
+      <div class="phone">
+        <div class="segs"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+        <div>
+          <span class="chip">Customer service · 0:45</span>
+          <div class="cap">Say the customer's name twice in the first minute.</div>
+          <div class="bar"><i></i></div>
+        </div>
+      </div>
+      <div class="caption">Reel 3 of 5 · story segments show how much is left</div>
+    </div>
+    <div>
+      <div class="phone">
+        <div class="segs"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+        <div>
+          <div class="q">When should you use the customer's name?</div>
+          <div class="opt">At checkout only</div>
+          <div class="opt pick">Twice in the first minute</div>
+          <div class="opt">Only if they say it first</div>
+        </div>
+        <div class="foot">Recall · 1 question</div>
+      </div>
+      <div class="caption">One recall question between reels, mint on correct</div>
+    </div>
+    <div>
+      <div class="phone">
+        <div class="segs"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        <div class="done">
+          <div class="ring"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#081822" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+          <b>Done for today</b><span>You remembered 8 of 10</span><span>See you tomorrow</span>
+        </div>
+        <div class="foot">4 min · streak 12 days</div>
+      </div>
+      <div class="caption">The screen no social feed has: an end</div>
+    </div>
+    <div>
+      <div class="wa">
+        <div class="b">Hi Noura, Al Wadi Retail has added you to Reelearn. One minute a day on customer service and safety, on this number. Reply <b>START</b> to get today's first reel.<small>09:02</small></div>
+        <div class="b" dir="rtl" lang="ar">أهلًا نورة، شركة الوادي للتجزئة أضافتك إلى ريليرن. دقيقة كل يوم عن خدمة العملاء والسلامة، على هذا الرقم. أرسلي <b>ابدأ</b> لتصلك أول مقطع اليوم.<small>09:02</small></div>
+      </div>
+      <div class="caption">WhatsApp invite · no app install, no corporate email</div>
+    </div>
+  </div>
+  <h3>Admin console header</h3>
+  <div class="admin">
+    <div class="top"><svg role="img" aria-label="Reelearn logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 860" data-w="420" data-h="860"><g transform="translate(60.0,60.0) scale(1.0)"><rect width="300" height="740" rx="92" fill="#FF6257"/><path d="M72 428 L130 490 L230 342" fill="none" stroke="#FFFFFF" stroke-width="88" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span>Reelearn Admin</span><span class="pill">Al Wadi Retail · 1,540 learners</span><span class="sp"></span><span class="pill">Topics: Service · Safety · AML</span><span class="pill">HRDF export</span></div>
+    <div class="kpis">
+      <div class="kpi"><div class="t-label">Weekly active</div><div class="t-num">78 %</div><p>1,204 learners</p></div>
+      <div class="kpi"><div class="t-label">Recall, 7-day</div><div class="t-num">81 %</div><p>up from 64 % at start</p></div>
+      <div class="kpi"><div class="t-label">Mystery-shop score</div><div class="t-num">4.6</div><p>operational KPI linked by the client</p></div>
+    </div>
+  </div>
+  <p class="caption" style="text-align:left">The console leads with recall and the client's own operational KPI, never with minutes watched.</p>
+</section>
+
+<section id="position">
+  <header><div class="eyebrow">07 · Visual position</div><p>Why ink and coral: the colour territories the nearest competitors already hold, from the identity audit.</p></header>
+  <h2>Between the corporate wordmarks and the mascots</h2>
+  <div class="scroll"><table>
+    <tr><th>Territory</th><th>Held by</th><th>Reelearn's move</th></tr>
+    <tr><td><span class="dot" style="background:#7B3FE4"></span>Purple / violet</td><td>7taps, Mitti (SafetyCulture), Udemy, Bayzat</td><td>Avoid entirely</td></tr>
+    <tr><td><span class="dot" style="background:#0A66C2"></span>Institutional blue</td><td>LinkedIn Learning, Coursera</td><td>Ink is a teal-navy, never a UI blue</td></tr>
+    <tr><td><span class="dot" style="background:#FF8A1F"></span>Orange</td><td>Axonify ("Kumquat"), Arist</td><td>Coral sits red of orange and is tied to one object, the card</td></tr>
+    <tr><td><span class="dot" style="background:#1E8E5A"></span>Green / teal</td><td>HRDF, Vision 2030, Duolingo</td><td>Mint is feedback only, never a brand field</td></tr>
+    <tr><td><span class="dot" style="background:#0D2B3E"></span>Open: dark base, warm accent, matched bilingual wordmark</td><td>No learning competitor in the audit</td><td>Owned by the ink + coral system and the shared-letter device</td></tr>
+  </table></div>
+  <p>Shape language is the other open space. Enterprise tools use plain wordmarks; consumer learning uses mascots. The reel card sits between them: a typographic device that is also an app icon.</p>
+</section>
+
+<section id="files">
+  <header><div class="eyebrow">08 · Files and next steps</div><p>What is in the logo folder and what has to happen before the identity is used in public.</p></header>
+  <h2>Sixteen SVGs, all outlines</h2>
+  <p>Every wordmark is converted to paths from Readex Pro 600, so no font is required to render them. Files: <code>reelearn-wordmark</code> (display, reversed, mono, text, text-plain), <code>reelearn-wordmark-ar</code> (default, reversed, plain), <code>reelearn-lockup-bilingual</code>, <code>reelearn-lockup-stacked</code>, <code>reelearn-mark</code> (coral, ink, white), <code>reelearn-app-icon</code> (primary, light), <code>reelearn-avatar</code>.</p>
+  <ul>
+    <li>Register reelearn.sa, reelearn.app and reelearn.io; reelearn.com is held by a French productivity site since 2018.</li>
+    <li>File the wordmark and the card mark at SAIP in classes 9, 41 and 42 before launch; check EUIPO/USPTO for "Re:learn" and "REDeLEARN" before any expansion.</li>
+    <li>Readex Pro and IBM Plex Sans Arabic are under the SIL Open Font License: free for the app, the web and the logo outlines.</li>
+    <li>Test the display wordmark on a dark WhatsApp profile and a 48 px LinkedIn avatar before freezing the check weight.</li>
+    <li>Commission the Urdu, Hindi, Bengali and Tagalog UI strings from the Arabic master, and typeset them in Readex Pro's companion faces (Noto Sans for Devanagari and Bengali).</li>
+  </ul>
+</section>
+
+<footer>Reelearn brand guide v1.0 · Built from the research in "Corporate learning reels platform" and the competitor visual-identity audit · Fonts: Readex Pro, IBM Plex Sans Arabic (OFL)</footer>
+</div>

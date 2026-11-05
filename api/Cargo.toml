@@ -1,0 +1,57 @@
+[workspace]
+resolver = "2"
+members = ["crates/domain", "crates/db", "crates/api", "crates/worker"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "UNLICENSED"
+publish = false
+
+[workspace.dependencies]
+reelearn-domain = { path = "crates/domain" }
+reelearn-db = { path = "crates/db" }
+reelearn-worker = { path = "crates/worker" }
+reelearn-api = { path = "crates/api" }
+
+anyhow = "1"
+async-stream = "0.3"
+async-trait = "0.1"
+aes-gcm = "0.10"
+argon2 = "0.5"
+axum = { version = "0.8", features = ["macros", "json", "query"] }
+base64 = "0.22"
+bytes = "1"
+chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = "0.10"
+csv = "1"
+dotenvy = "0.15"
+futures = "0.3"
+hex = "0.4"
+hmac = "0.12"
+http-body-util = "0.1"
+jsonwebtoken = "9"
+rand = "0.8"
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "multipart"] }
+rusty-s3 = "0.7"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "json", "migrate"] }
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+tokio-stream = "0.1"
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.6", features = ["trace", "cors", "compression-full", "request-id", "timeout", "util"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+url = "2"
+uuid = { version = "1", features = ["v4", "v7", "serde"] }
+
+[profile.dev]
+opt-level = 0
+debug = 1
+
+[profile.dev.package."*"]
+opt-level = 1

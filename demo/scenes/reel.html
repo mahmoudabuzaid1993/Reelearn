@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reel clip</title>
+<style>
+  html,body{margin:0;height:100%;background:#081822;overflow:hidden;font-family:system-ui,sans-serif}
+  .stage{position:relative;width:540px;height:960px;background:radial-gradient(120% 70% at 50% 20%,#17425A 0%,#0D2B3E 55%,#081822 100%);overflow:hidden}
+  .floor{position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(#0B2433,#081822)}
+  .shelf{position:absolute;top:150px;height:230px;width:150px;border-radius:10px;background:#123448;opacity:.9}
+  .shelf i{position:absolute;left:12px;right:12px;height:10px;border-radius:5px;background:#1E4D66}
+  .shelf b{position:absolute;bottom:0;width:26px;border-radius:5px 5px 0 0}
+  .p{position:absolute;left:50%;top:170px;width:260px;margin-left:-130px;animation:bob 3.2s ease-in-out infinite}
+  .head{width:120px;height:120px;border-radius:50%;background:#F2C6A5;margin:0 auto;position:relative}
+  .hair{position:absolute;inset:-10px -8px 46px -8px;border-radius:70px 70px 26px 26px;background:#0D2B3E}
+  .scarf{position:absolute;inset:-14px -14px 20px -14px;border-radius:80px 80px 40px 40px;background:#2EC4B6}
+  .face{position:absolute;inset:26px 14px 0 14px;border-radius:50%;background:#F2C6A5}
+  .eye{position:absolute;top:52px;width:10px;height:10px;border-radius:50%;background:#0D2B3E;animation:blink 4s infinite}
+  .mouth{position:absolute;left:50%;top:80px;width:28px;height:10px;margin-left:-14px;border-radius:0 0 14px 14px;background:#B5544B;animation:talk .42s ease-in-out infinite alternate;transform-origin:top}
+  .body{width:230px;height:250px;margin:-6px auto 0;border-radius:90px 90px 18px 18px;background:#FF6257;position:relative}
+  .badge{position:absolute;left:36px;top:70px;width:54px;height:34px;border-radius:6px;background:#F6F7F5}
+  .arm{position:absolute;top:60px;width:44px;height:150px;border-radius:22px;background:#FF6257}
+  .arm.l{left:-22px;transform-origin:top center;animation:wave 2.4s ease-in-out infinite}
+  .arm.r{right:-22px}
+  .wave{position:absolute;left:50%;bottom:330px;display:flex;gap:7px;transform:translateX(-50%)}
+  .wave i{width:8px;border-radius:4px;background:#FF6257;animation:eq .7s ease-in-out infinite alternate}
+  .cone{position:absolute;left:330px;bottom:330px;width:0;height:0;border-left:44px solid transparent;border-right:44px solid transparent;border-bottom:120px solid #FF6257;animation:drop .9s cubic-bezier(.2,1.4,.4,1) 1.2s both}
+  .cone:after{content:"";position:absolute;left:-56px;top:120px;width:112px;height:14px;border-radius:7px;background:#E24E44}
+  .cone:before{content:"";position:absolute;left:-26px;top:52px;width:52px;height:14px;background:#F6F7F5}
+  .spill{position:absolute;left:300px;bottom:300px;width:170px;height:34px;border-radius:50%;background:#2EC4B6;opacity:.55;animation:spread 2.4s ease-out both}
+  .tag{display:none;position:absolute;left:50%;transform:translateX(-50%);top:70px;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font-size:20px;letter-spacing:.06em}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  @keyframes blink{0%,46%,50%,100%{transform:scaleY(1)}48%{transform:scaleY(.1)}}
+  @keyframes talk{from{transform:scaleY(.35)}to{transform:scaleY(1.25)}}
+  @keyframes wave{0%,100%{transform:rotate(8deg)}50%{transform:rotate(34deg)}}
+  @keyframes eq{from{height:10px}to{height:46px}}
+  @keyframes drop{from{transform:translateY(-420px) rotate(-12deg);opacity:0}to{transform:none;opacity:1}}
+  @keyframes spread{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:.55}}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="shelf" style="left:26px"><i style="top:60px"></i><i style="top:130px"></i><b style="left:20px;height:48px;background:#2EC4B6;bottom:100px"></b><b style="left:56px;height:36px;background:#FF6257;bottom:100px"></b><b style="left:92px;height:54px;background:#F6F7F5;bottom:100px"></b></div>
+  <div class="shelf" style="right:26px"><i style="top:60px"></i><i style="top:130px"></i><b style="left:24px;height:40px;background:#F6F7F5;bottom:170px"></b><b style="left:70px;height:52px;background:#2EC4B6;bottom:170px"></b></div>
+  <div class="floor"></div>
+  <div class="tag" id="tag"></div>
+  <div id="extra"></div>
+  <div class="p">
+    <div class="head"><div class="hair" id="hair"></div><div class="face"></div><div class="eye" style="left:36px"></div><div class="eye" style="right:36px"></div><div class="mouth"></div></div>
+    <div class="body"><div class="badge"></div><div class="arm l"></div><div class="arm r"></div></div>
+  </div>
+  <div class="wave"><i style="animation-delay:0s"></i><i style="animation-delay:.1s"></i><i style="animation-delay:.2s"></i><i style="animation-delay:.3s"></i><i style="animation-delay:.15s"></i><i style="animation-delay:.05s"></i><i style="animation-delay:.25s"></i></div>
+</div>
+<script>
+  const v = new URLSearchParams(location.search).get("v") || "1";
+  document.getElementById("tag").textContent = v === "1" ? "CUSTOMER SERVICE" : "STORE SAFETY";
+  if (v === "1") { document.getElementById("hair").className = "scarf"; }
+  else { document.getElementById("extra").innerHTML = '<div class="spill"></div><div class="cone"></div>'; document.querySelector(".body").style.background = "#2EC4B6"; }
+</script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+[package]
+name = "reelearn-worker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Reelearn background worker: durable job queue, scheduler leader, generation pipeline with provider traits."
+
+[lib]
+name = "reelearn_worker"
+path = "src/lib.rs"
+
+[[bin]]
+name = "reelearn-worker"
+path = "src/main.rs"
+
+[dependencies]
+reelearn-domain = { workspace = true, features = ["sqlx"] }
+reelearn-db = { workspace = true }
+reelearn-api = { workspace = true }
+csv = { workspace = true }
+futures = { workspace = true }
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+aes-gcm = { workspace = true }
+base64 = { workspace = true }
+chrono = { workspace = true }
+chrono-tz = { workspace = true }
+dotenvy = { workspace = true }
+hex = { workspace = true }
+rand = { workspace = true }
+redis = { workspace = true }
+reqwest = { workspace = true }
+rusty-s3 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+url = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+axum = { workspace = true, features = ["multipart"] }
+http-body-util = { workspace = true }
+tower = { workspace = true }

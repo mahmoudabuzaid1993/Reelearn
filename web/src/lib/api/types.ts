@@ -1,0 +1,48 @@
+import type { components, paths } from "./schema";
+
+export type Schemas = components["schemas"];
+export type Paths = paths;
+
+export type Problem = Schemas["Problem"];
+export type Me = Schemas["Me"];
+export type Tenant = Schemas["Tenant"];
+export type TenantPublic = Schemas["TenantPublic"];
+export type TenantSettings = Schemas["TenantSettings"];
+export type TokenPair = Schemas["TokenPair"];
+export type User = Schemas["User"];
+export type UserCreate = Schemas["UserCreate"];
+export type Group = Schemas["Group"];
+export type GroupRef = Schemas["GroupRef"];
+export type Topic = Schemas["Topic"];
+export type TopicCreate = Schemas["TopicCreate"];
+export type Assignment = Schemas["Assignment"];
+export type AssignmentWrite = Schemas["AssignmentWrite"];
+export type Source = Schemas["Source"];
+export type SourceCreate = Schemas["SourceCreate"];
+export type Moment = Schemas["Moment"];
+export type GenerationRequest = Schemas["GenerationRequest"];
+export type GenerationJob = Schemas["GenerationJob"];
+export type GenerationStep = GenerationJob["steps"][number];
+export type Reel = Schemas["Reel"];
+export type ReelApproval = NonNullable<Reel["approvals"]>[number];
+export type ReelListItem = Schemas["ReelListItem"];
+export type ReelPatch = Schemas["ReelPatch"];
+export type ReelStatus = Schemas["ReelStatus"];
+export type ReelKind = Schemas["ReelKind"];
+export type Question = Schemas["Question"];
+export type Dashboard = Schemas["Dashboard"];
+export type ReportOverview = Schemas["ReportOverview"];
+export type ReportRow = Schemas["ReportRow"];
+export type Export = Schemas["Export"];
+export type Integration = Schemas["Integration"];
+export type IntegrationKind = Schemas["IntegrationKind"];
+export type AuditEntry = Schemas["AuditEntry"];
+export type ImportReport = Schemas["ImportReport"];
+export type Channel = Schemas["Channel"];
+export type Role = Schemas["Role"];
+export type UserStatus = Schemas["UserStatus"];
+export type Region = Schemas["Region"];
+
+export type Quote =
+  paths["/admin/generation-jobs/quote"]["post"]["responses"]["200"]["content"]["application/json"];
+export type Page<T> = { items: T[]; next_cursor?: string | null };

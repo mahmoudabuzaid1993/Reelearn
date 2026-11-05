@@ -1,0 +1,87 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: reelearn
+      POSTGRES_PASSWORD: reelearn
+      POSTGRES_DB: reelearn
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reelearn"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    # S3-compatible object storage for development (RustFS, Apache-2.0). MinIO's public images were withdrawn.
+    image: rustfs/rustfs:latest
+    environment:
+      RUSTFS_ACCESS_KEY: reelearn
+      RUSTFS_SECRET_KEY: reelearn123
+      RUSTFS_CONSOLE_ENABLE: "true"
+    ports: ["9000:9000", "9001:9001"]
+    volumes:
+      - miniodata:/data
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgres://reelearn:reelearn@postgres:5432/reelearn
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: reelearn
+      S3_ACCESS_KEY: reelearn
+      S3_SECRET_KEY: reelearn123
+      JWT_SECRET: change-me-in-production
+      APP_ENV: development
+      PORT: "8080"
+    ports: ["8080:8080"]
+    profiles: ["full"]
+
+  worker:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    command: ["reelearn-worker"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgres://reelearn:reelearn@postgres:5432/reelearn
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_BUCKET: reelearn
+      S3_ACCESS_KEY: reelearn
+      S3_SECRET_KEY: reelearn123
+      JWT_SECRET: change-me-in-production
+      APP_ENV: development
+    profiles: ["full"]
+
+  web:
+    build: ./web
+    depends_on: [api]
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080/v1
+    ports: ["3000:3000"]
+    profiles: ["full"]
+
+volumes:
+  pgdata:
+  miniodata:

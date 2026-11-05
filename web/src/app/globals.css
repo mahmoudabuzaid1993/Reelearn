@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #0d2b3e;
+  --color-coral: #ff6257;
+  --color-coral-strong: #e0463b;
+  --color-mint: #2ec4b6;
+  --color-mint-soft: #e2f6f3;
+  --color-paper: #f6f7f5;
+  --color-night: #081822;
+  --color-slate: #5b6b78;
+  --color-line: #dde2e0;
+  --color-surface: #ffffff;
+  --color-surface-muted: #eef1ef;
+  --color-ink-soft: #e7ecef;
+
+  --font-display: var(--font-readex), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-plex-arabic), var(--font-readex), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 14px;
+  --radius-control: 10px;
+
+  --text-base: 14px;
+  --text-base--line-height: 1.5;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  font-size: 14px;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+[dir="rtl"] .flip-rtl {
+  transform: scaleX(-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-surface-muted) 25%, #f4f6f5 50%, var(--color-surface-muted) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

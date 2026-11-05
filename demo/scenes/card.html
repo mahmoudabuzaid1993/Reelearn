@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reelearn demo card</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@300..700&display=swap">
+<style>
+  :root{--ink:#0D2B3E;--coral:#FF6257;--mint:#2EC4B6;--paper:#F6F7F5;--night:#081822;--slate:#5B6B78;--line:#DDE2E0}
+  html,body{margin:0;width:1920px;height:1080px;overflow:hidden;font-family:'Readex Pro',system-ui,sans-serif;background:var(--night)}
+  .card{position:absolute;inset:0;display:none;box-sizing:border-box;padding:110px 140px}
+  .card.on{display:flex}
+  .in{opacity:0;transform:translateY(22px);animation:in .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:var(--d,0s)}
+  @keyframes in{to{opacity:1;transform:none}}
+  @keyframes pop{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
+  @keyframes rise{from{transform:translateY(120px);opacity:0}to{transform:none;opacity:1}}
+  @keyframes light{0%{background:rgba(255,255,255,.08);color:#B9C6CF}100%{background:var(--mint);color:var(--night)}}
+
+  /* title + close */
+  #title,#close{background:var(--ink);color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:34px;text-align:center}
+  .wordmark{height:150px;opacity:0;animation:pop .9s cubic-bezier(.2,.8,.2,1) .3s forwards}
+  .tag{font-size:46px;font-weight:300;color:#B9C6CF;letter-spacing:.01em}
+  .tag b{color:#fff;font-weight:500}
+  .ar{font-size:36px;color:#7F93A0;direction:rtl}
+
+  /* problem */
+  #problem{background:var(--paper);color:var(--ink);gap:90px;align-items:center}
+  #problem .col{flex:1;display:flex;flex-direction:column;gap:34px}
+  .eyebrow{font-size:24px;font-weight:600;letter-spacing:.14em;color:var(--coral)}
+  .big{font-size:62px;font-weight:600;line-height:1.14;margin:0}
+  .line{font-size:36px;line-height:1.3;color:var(--slate);display:flex;gap:18px;align-items:baseline}
+  .line i{flex:0 0 14px;height:14px;border-radius:50%;background:var(--coral);transform:translateY(-4px)}
+  .line strong{color:var(--ink);font-weight:600}
+  .phone{flex:0 0 400px;height:820px;border-radius:54px;background:var(--ink);padding:16px;box-sizing:border-box;position:relative;overflow:hidden;box-shadow:0 30px 80px rgba(13,43,62,.28)}
+  .phone .scr{position:absolute;inset:16px;border-radius:40px;background:var(--night);overflow:hidden}
+  .reelc{position:absolute;left:0;right:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;padding:34px;box-sizing:border-box;color:#fff;font-size:30px;font-weight:500;line-height:1.25}
+  .reelc small{font-size:17px;letter-spacing:.12em;color:#B9C6CF;margin-bottom:10px}
+  .reelc.a{background:linear-gradient(#17425A,#0D2B3E);animation:up1 12s cubic-bezier(.7,0,.2,1) forwards}
+  .reelc.b{background:linear-gradient(#1B4259,#081822);top:100%;animation:up2 12s cubic-bezier(.7,0,.2,1) forwards}
+  .reelc.c{background:var(--mint);color:var(--night);top:200%;align-items:center;justify-content:center;text-align:center;font-size:40px;animation:up3 12s cubic-bezier(.7,0,.2,1) forwards}
+  @keyframes up1{0%,62%{transform:none}70%,100%{transform:translateY(-100%)}}
+  @keyframes up2{0%,62%{transform:none}70%,84%{transform:translateY(-100%)}92%,100%{transform:translateY(-200%)}}
+  @keyframes up3{0%,84%{transform:none}92%,100%{transform:translateY(-200%)}}
+
+  /* pipeline */
+  #pipeline{background:var(--night);color:#fff;flex-direction:column;gap:46px;justify-content:center}
+  #pipeline h1{margin:0;font-size:60px;font-weight:600}
+  #pipeline h1 span{color:var(--coral)}
+  .steps{display:flex;gap:12px;flex-wrap:nowrap}
+  .steps b{padding:14px 22px;border-radius:999px;font-size:25px;font-weight:500;background:rgba(255,255,255,.08);color:#B9C6CF;animation:light .5s ease forwards;animation-delay:var(--d)}
+  .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px}
+  .model{border:1px solid rgba(255,255,255,.16);border-radius:26px;padding:34px;display:flex;flex-direction:column;gap:14px;background:rgba(255,255,255,.04)}
+  .model h2{margin:0;font-size:38px;font-weight:600}
+  .model code{font-family:ui-monospace,Menlo,monospace;font-size:22px;color:var(--mint)}
+  .model p{margin:0;font-size:27px;line-height:1.35;color:#B9C6CF}
+
+  /* close */
+  .chips{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;max-width:1500px}
+  .chips b{padding:16px 28px;border-radius:999px;border:1px solid rgba(255,255,255,.22);font-size:30px;font-weight:500}
+  .tests{font-size:40px;color:#B9C6CF}
+  .tests b{color:var(--mint);font-size:64px;font-weight:600;font-variant-numeric:tabular-nums}
+  .swap{display:flex;flex-direction:column;align-items:center;gap:34px}
+  .hideat{animation:out .6s ease forwards;animation-delay:9.6s}
+  @keyframes out{to{opacity:0;transform:translateY(-20px);height:0;margin:0;overflow:hidden}}
+</style>
+</head>
+<body>
+<section class="card" id="title">
+  <img class="wordmark" src="../../brand/logo/reelearn-wordmark-reversed.svg" alt="Reelearn">
+  <div class="tag in" style="--d:1.3s"><b>A minute a day.</b> Remembered for months.</div>
+  <div class="ar in" style="--d:2.3s">دقيقة كل يوم، تبقى لشهور.</div>
+</section>
+
+<section class="card" id="problem">
+  <div class="col">
+    <div class="eyebrow in" style="--d:.2s">THE PROBLEM</div>
+    <h1 class="big in" style="--d:.5s">Frontline teams never open the training portal.</h1>
+    <div class="line in" style="--d:4.4s"><i></i><span>Long courses, <strong>the wrong language</strong>, forgotten within a week.</span></div>
+    <div class="line in" style="--d:8.2s"><i></i><span>But everyone already watches <strong>short vertical video</strong>.</span></div>
+    <div class="line in" style="--d:11.4s"><i style="background:#2EC4B6"></i><span>So learning looks like that, and <strong>stops after one minute</strong>.</span></div>
+  </div>
+  <div class="phone in" style="--d:7.6s">
+    <div class="scr">
+      <div class="reelc a"><small>CUSTOMER SERVICE</small>Say the customer's name twice in the first minute</div>
+      <div class="reelc b"><small>STORE SAFETY</small>Spill on the floor: cone first, mop second</div>
+      <div class="reelc c">Done for today</div>
+    </div>
+  </div>
+</section>
+
+<section class="card" id="pipeline">
+  <div class="eyebrow in" style="--d:.1s">THE PIPELINE</div>
+  <h1 class="in" style="--d:.3s">Every reel is written and rendered on <span>Meta Model API</span></h1>
+  <div class="steps in" style="--d:.9s">
+    <b style="--d:1.4s">extract</b><b style="--d:2.4s">script</b><b style="--d:3.4s">question</b><b style="--d:5.4s">render</b><b style="--d:6.6s">voice</b><b style="--d:7.6s">captions</b><b style="--d:8.6s">translate</b>
+  </div>
+  <div class="cols">
+    <div class="model in" style="--d:3.2s"><h2>Muse Spark</h2><code>muse-spark-1.3</code><p>Scripts, recall questions, translation and podcast moments, as schema-constrained JSON.</p></div>
+    <div class="model in" style="--d:6.2s"><h2>Muse Image</h2><code>muse-image-1.0</code><p>A 9:16 keyframe for every reel, turned into video and used as its poster.</p></div>
+    <div class="model in" style="--d:8.6s"><h2>Muse Voice Transcribe</h2><code>muse-voice-transcribe-1.0</code><p>Talks and podcasts become diarized transcripts and teachable moments.</p></div>
+  </div>
+</section>
+
+<section class="card" id="close">
+  <div class="swap hideat">
+    <div class="eyebrow in" style="--d:.2s">BUILT TO SCALE</div>
+    <div class="chips">
+      <b class="in" style="--d:.6s">Rust API · axum</b>
+      <b class="in" style="--d:1.9s">PostgreSQL 17 · row-level security per tenant</b>
+      <b class="in" style="--d:4.4s">Redis caching</b>
+      <b class="in" style="--d:5.5s">Next.js console</b>
+      <b class="in" style="--d:6.6s">Flutter app</b>
+    </div>
+    <div class="tests in" style="--d:7.6s"><b>189</b> automated tests</div>
+  </div>
+  <img class="wordmark" style="animation-delay:10.2s" src="../../brand/logo/reelearn-wordmark-reversed.svg" alt="Reelearn">
+  <div class="tag in" style="--d:11.2s"><b>A minute a day.</b> Remembered for months.</div>
+  <div class="ar in" style="--d:12.4s">Built on Meta Model API · Muse Spark · Muse Image · Muse Voice Transcribe</div>
+</section>
+<script>
+  const id = new URLSearchParams(location.search).get("id") || "title";
+  document.getElementById(id).classList.add("on");
+</script>
+</body>
+</html>

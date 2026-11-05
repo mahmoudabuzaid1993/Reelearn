@@ -1,0 +1,35 @@
+# tooling logs
+.tooling/
+
+# rust
+api/target/
+api/**/*.rs.bk
+
+# node
+node_modules/
+web/.next/
+web/out/
+web/coverage/
+web/playwright-report/
+web/test-results/
+*.tsbuildinfo
+
+# flutter / dart
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/ios/Pods/
+mobile/android/.gradle/
+mobile/**/*.g.dart
+mobile/**/*.freezed.dart
+
+# env and secrets
+.env
+.env.*
+!.env.example
+
+# os / editors
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,89 @@
+{
+  "voice": "Samantha",
+  "rate": 178,
+  "total_seconds": 180,
+  "scenes": [
+    {
+      "id": "01_title",
+      "kind": "card",
+      "seconds": 6,
+      "title": "Reelearn",
+      "text": "Reelearn. A minute a day. Remembered for months."
+    },
+    {
+      "id": "02_problem",
+      "kind": "card",
+      "seconds": 17,
+      "title": "The problem",
+      "text": "Frontline teams in Saudi retail and warehouses never open the training portal. Courses are long, in the wrong language, and forgotten within a week. But everyone already watches short vertical video. So we made learning look like that, and made it stop after one minute."
+    },
+    {
+      "id": "03_console",
+      "kind": "web",
+      "seconds": 16,
+      "title": "The company console",
+      "text": "This is the company console. Noura, the learning lead, signs in with a one-time code. No passwords anywhere. Her dashboard shows how the company is learning: who is active, how much is remembered, and what needs her attention."
+    },
+    {
+      "id": "04a_studio",
+      "kind": "web",
+      "seconds": 21,
+      "title": "AI Reel Studio",
+      "text": "In the A I Reel Studio she describes a topic, or uploads a document, a talk, or a podcast. She picks the topic, the languages and the style, and the price in credits appears before anything runs."
+    },
+    {
+      "id": "04b_pipeline",
+      "kind": "card",
+      "seconds": 13,
+      "title": "Meta Model API",
+      "text": "Then the pipeline goes to work on Meta Model A P I. Muse Spark writes each script and its recall question. Muse Image paints a vertical keyframe. Muse Voice Transcribe turns talks and podcasts into moments."
+    },
+    {
+      "id": "04c_storyboard",
+      "kind": "web",
+      "seconds": 19,
+      "title": "Storyboard and editor",
+      "text": "Moments later the storyboard is ready: three reels, each with a script, a question, and an Arabic variant. She opens one, rewrites a line, and the phone preview updates as she saves."
+    },
+    {
+      "id": "05_approval",
+      "kind": "web",
+      "seconds": 19,
+      "title": "Two approvals before anything ships",
+      "text": "Nothing reaches employees on the word of an A I alone. Publishing is locked until two people approve: learning and development, and a subject expert. The database itself refuses anything less. Then it goes live to the stores she picks."
+    },
+    {
+      "id": "06_phone",
+      "kind": "phone",
+      "seconds": 40,
+      "title": "Sara's minute",
+      "bullets": [
+        "Phone number + WhatsApp code",
+        "Swipe up, like every app she loves",
+        "One question after each reel",
+        "No red for a wrong answer",
+        "The stack ends: done for today"
+      ],
+      "text": "Now Sara, on the shop floor. She signs in with her phone number and a WhatsApp code. Today's minute is waiting: two new reels and one review. She swipes up, like every app she already loves. After each reel, one question. Get it right, and it turns mint. Get it wrong, and there is no red, just the right answer, and the question comes back in a few days. She cannot swipe past a question. And after the last card, it simply ends. Done for today."
+    },
+    {
+      "id": "07_manager",
+      "kind": "phone",
+      "seconds": 13,
+      "title": "Readiness, not surveillance",
+      "bullets": [
+        "Managers see readiness per topic",
+        "Never individual answers",
+        "HRDF evidence in one export"
+      ],
+      "text": "Her manager sees who is ready on each topic, never individual answers. And H R exports the evidence the national training fund asks for."
+    },
+    {
+      "id": "08_close",
+      "kind": "card",
+      "seconds": 16,
+      "title": "Built to scale",
+      "text": "Under the hood: a Rust A P I, Postgres with row level security for every tenant, Redis caching, a Next J S console and a Flutter app, covered by nearly two hundred automated tests. Reelearn. A minute a day. Remembered for months."
+    }
+  ]
+}
