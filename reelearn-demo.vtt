@@ -1,0 +1,127 @@
+WEBVTT
+
+00:00.450 --> 00:02.022
+Reelearn. A minute a day.
+
+00:02.072 --> 00:03.449
+Remembered for months.
+
+00:06.450 --> 00:10.847
+Frontline teams in Saudi retail and warehouses never open the training portal.
+
+00:10.897 --> 00:14.781
+Courses are long, in the wrong language, and forgotten within a week.
+
+00:14.831 --> 00:17.631
+But everyone already watches short vertical video.
+
+00:17.681 --> 00:21.622
+So we made learning look like that, and made it stop after one minute.
+
+00:23.450 --> 00:25.082
+This is the company console.
+
+00:25.132 --> 00:28.447
+Noura, the learning lead, signs in with a one-time code.
+
+00:28.497 --> 00:29.769
+No passwords anywhere.
+
+00:29.819 --> 00:32.653
+Her dashboard shows how the company is learning:
+
+00:32.703 --> 00:36.738
+who is active, how much is remembered, and what needs her attention.
+
+00:39.450 --> 00:45.058
+In the AI Reel Studio she describes a topic, or uploads a document, a talk, or a podcast.
+
+00:45.108 --> 00:51.669
+She picks the topic, the languages and the style, and the price in credits appears before anything runs.
+
+01:00.450 --> 01:03.267
+Then the pipeline goes to work on Meta Model API.
+
+01:03.317 --> 01:06.426
+Muse Spark writes each script and its recall question.
+
+01:06.476 --> 01:08.649
+Muse Image paints a vertical keyframe.
+
+01:08.699 --> 01:12.159
+Muse Voice Transcribe turns talks and podcasts into moments.
+
+01:13.450 --> 01:15.783
+Moments later the storyboard is ready:
+
+01:15.833 --> 01:19.985
+three reels, each with a script, a question, and an Arabic variant.
+
+01:20.035 --> 01:24.689
+She opens one, rewrites a line, and the phone preview updates as she saves.
+
+01:32.450 --> 01:35.473
+Nothing reaches employees on the word of an AI alone.
+
+01:35.523 --> 01:38.140
+Publishing is locked until two people approve:
+
+01:38.190 --> 01:40.865
+learning and development, and a subject expert.
+
+01:40.915 --> 01:43.300
+The database itself refuses anything less.
+
+01:43.350 --> 01:45.735
+Then it goes live to the stores she picks.
+
+01:51.450 --> 01:53.152
+Now Sara, on the shop floor.
+
+01:53.202 --> 01:56.595
+She signs in with her phone number and a WhatsApp code.
+
+01:56.645 --> 01:58.222
+Today's minute is waiting:
+
+01:58.272 --> 02:00.037
+two new reels and one review.
+
+02:00.087 --> 02:03.041
+She swipes up, like every app she already loves.
+
+02:03.091 --> 02:04.919
+After each reel, one question.
+
+02:04.969 --> 02:06.922
+Get it right, and it turns mint.
+
+02:06.972 --> 02:13.180
+Get it wrong, and there is no red, just the right answer, and the question comes back in a few days.
+
+02:13.230 --> 02:15.246
+She cannot swipe past a question.
+
+02:15.296 --> 02:17.749
+And after the last card, it simply ends.
+
+02:17.799 --> 02:18.688
+Done for today.
+
+02:31.450 --> 02:35.679
+Her manager sees who is ready on each topic, never individual answers.
+
+02:35.729 --> 02:39.592
+And HR exports the evidence the national training fund asks for.
+
+02:44.450 --> 02:51.020
+Under the hood: a Rust API, Postgres with row level security for every tenant, Redis caching, a Next.
+
+02:51.070 --> 02:56.002
+js console and a Flutter app, covered by nearly two hundred automated tests.
+
+02:56.052 --> 02:57.641
+Reelearn. A minute a day.
+
+02:57.691 --> 02:59.083
+Remembered for months.
