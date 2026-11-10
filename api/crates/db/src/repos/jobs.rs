@@ -172,3 +172,20 @@ pub async fn active_for_delivery(
         .fetch_one(conn)
         .await?)
 }
+
+/// A job of `kind` for the tenant whose payload carries `key = value` (hourly stamps).
+pub async fn exists_with_key(
+    conn: &mut PgConnection,
+    tenant_id: Uuid,
+    kind: &str,
+    key: &str,
+    value: &str,
+) -> Result<bool, DbError> {
+    Ok(sqlx::query_scalar("SELECT EXISTS (SELECT 1 FROM jobs WHERE tenant_id = $1 AND kind = $2 AND payload->>$3 = $4 AND status <> 'failed')")
+        .bind(tenant_id)
+        .bind(kind)
+        .bind(key)
+        .bind(value)
+        .fetch_one(conn)
+        .await?)
+}

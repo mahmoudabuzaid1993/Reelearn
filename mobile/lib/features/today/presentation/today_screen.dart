@@ -38,6 +38,8 @@ class TodayScreen extends ConsumerWidget {
             onStart: () => context.go(Routes.play),
             onOpenSaved: () => context.go(Routes.saved),
             onOpenDone: () => context.go(Routes.done),
+            onKeepGoing:
+                p.practiceAvailable ? () => context.go(Routes.practice) : null,
           ),
         ),
       ),
@@ -53,6 +55,7 @@ class TodayBody extends StatelessWidget {
     required this.onStart,
     required this.onOpenSaved,
     required this.onOpenDone,
+    this.onKeepGoing,
     super.key,
   });
 
@@ -61,6 +64,9 @@ class TodayBody extends StatelessWidget {
   final VoidCallback onStart;
   final VoidCallback onOpenSaved;
   final VoidCallback onOpenDone;
+
+  /// "Keep going" practice, when the company offers it.
+  final VoidCallback? onKeepGoing;
 
   @override
   Widget build(BuildContext context) {
@@ -124,6 +130,15 @@ class TodayBody extends StatelessWidget {
         body: l.doneBody,
         action: Column(
           children: [
+            if (onKeepGoing != null) ...[
+              FilledButton.icon(
+                key: const Key('today-keep-going'),
+                onPressed: onKeepGoing,
+                icon: const Icon(Icons.play_arrow_rounded),
+                label: Text(l.keepGoing),
+              ),
+              const SizedBox(height: 8),
+            ],
             OutlinedButton(
               onPressed: onOpenDone,
               child: Text(

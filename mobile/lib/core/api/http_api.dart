@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import 'dio_client.dart';
+import 'models/json.dart' show asInt;
 import 'models/models.dart';
 import 'reelearn_api.dart';
 
@@ -194,6 +195,99 @@ class HttpApi implements ReelearnApi {
           queryParameters: {if (lang != null) 'lang': lang},
         );
         return ReelPlayable.fromJson(_json(res));
+      });
+
+  // ---------------------------------------------------------------- engine
+
+  @override
+  Future<NextBatch> getNext({String? sessionId, int? limit}) => _call(() async {
+        final res = await _dio.get<dynamic>(
+          '/me/next',
+          queryParameters: {
+            if (sessionId != null) 'session_id': sessionId,
+            if (limit != null) 'limit': limit,
+          },
+        );
+        return NextBatch.fromJson(_json(res));
+      });
+
+  @override
+  Future<void> postEvents(
+    EngagementBatch batch, {
+    required String idempotencyKey,
+  }) =>
+      _call(
+        () => _dio.post<dynamic>(
+          '/me/events',
+          data: batch.toJson(),
+          options: Options(headers: {'Idempotency-Key': idempotencyKey}),
+        ),
+      );
+
+  @override
+  Future<void> endSession(String sessionId) =>
+      _call(() => _dio.post<dynamic>('/me/sessions/$sessionId/end'));
+
+  @override
+  Future<MyInterests> getMyTopics() => _call(
+        () async =>
+            MyInterests.fromJson(_json(await _dio.get<dynamic>('/me/topics'))),
+      );
+
+  @override
+  Future<MyInterests> setTopicPreference(
+    String topicId,
+    TopicPreference? preference,
+  ) =>
+      _call(() async {
+        final res = await _dio.put<dynamic>(
+          '/me/topics/$topicId',
+          data: {'preference': preference?.wire},
+        );
+        return MyInterests.fromJson(_json(res));
+      });
+
+  @override
+  Future<MyInterests> setPersonalization({required bool enabled}) =>
+      _call(() async {
+        final res = await _dio.put<dynamic>(
+          '/me/personalization',
+          data: {'enabled': enabled},
+        );
+        return MyInterests.fromJson(_json(res));
+      });
+
+  @override
+  Future<List<Colleague>> getColleagues({String? query}) => _call(() async {
+        final res = await _dio.get<dynamic>(
+          '/me/colleagues',
+          queryParameters: {if (query != null && query.isNotEmpty) 'q': query},
+        );
+        final d = res.data;
+        return d is List
+            ? d
+                .whereType<Map<String, dynamic>>()
+                .map(Colleague.fromJson)
+                .toList(growable: false)
+            : const [];
+      });
+
+  @override
+  Future<int> shareReel(
+    String reelId,
+    List<String> recipientIds, {
+    String? note,
+  }) =>
+      _call(() async {
+        final res = await _dio.post<dynamic>(
+          '/me/shares',
+          data: {
+            'reel_id': reelId,
+            'recipient_ids': recipientIds,
+            if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+          },
+        );
+        return asInt(_json(res), 'sent');
       });
 
   // ---------------------------------------------------------------- manager

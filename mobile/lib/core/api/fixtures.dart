@@ -314,6 +314,81 @@ class Fixtures {
     ),
   ];
 
+  /// Reels the fake engine serves in practice ("keep going"), with a reason each.
+  static List<({ReelPlayable reel, String reason, String? detail})>
+      get practice => [
+            for (final (i, c) in library.indexed.skip(2))
+              (
+                reel: ReelPlayable(
+                  id: c.id,
+                  title: c.title,
+                  topicName: c.topicName,
+                  presenterName: c.presenterName,
+                  language: c.language,
+                  durationMs: c.durationMs,
+                  videoUrl: i.isEven ? sampleVideo : sampleVideo2,
+                  captionsOnByDefault: true,
+                  captionText: c.title,
+                  whyAmISeeingThis: 'Topic: ${c.topicName}.',
+                  question: i.isEven ? question1 : question2,
+                ),
+                reason: const [
+                  'interest',
+                  'popular',
+                  'explore',
+                  'assigned',
+                ][i % 4],
+                detail: i % 4 == 1 ? 'Jeddah' : c.topicName,
+              ),
+          ];
+
+  static const colleagues = [
+    Colleague(id: fatimahId, fullName: 'Fatimah Noor', location: 'Jeddah'),
+    Colleague(id: rizwanId, fullName: 'Rizwan Ahmed', location: 'Jeddah'),
+    Colleague(id: mohammadId, fullName: 'Mohammad A.', location: 'Jeddah'),
+    Colleague(
+      id: khalidId,
+      fullName: 'Khalid Mansour',
+      jobTitle: 'Store manager',
+    ),
+  ];
+
+  static const interests = MyInterests(
+    personalized: true,
+    topics: [
+      MyTopic(
+        topicId: topicCustomerService,
+        name: 'Customer service',
+        isMandatory: false,
+        assigned: true,
+        interest: 72,
+        publishedReels: 3,
+        preference: TopicPreference.follow,
+      ),
+      MyTopic(
+        topicId: topicStoreSafety,
+        name: 'Store safety',
+        isMandatory: true,
+        assigned: true,
+        interest: 41,
+        publishedReels: 3,
+      ),
+      MyTopic(
+        topicId: topicAml,
+        name: 'AML',
+        isMandatory: true,
+        assigned: true,
+        interest: 18,
+        publishedReels: 2,
+      ),
+    ],
+    topTags: [
+      TagInterest(tag: 'greeting', interest: 64),
+      TagInterest(tag: 'spills', interest: 38),
+      TagInterest(tag: 'complaints', interest: 27),
+    ],
+  );
+
   static const topicIdsByName = {
     'Customer service': topicCustomerService,
     'Store safety': topicStoreSafety,

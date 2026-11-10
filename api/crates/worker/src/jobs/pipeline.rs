@@ -648,7 +648,8 @@ async fn script_step(
         .map_err(perr)?;
     let kind: ReelKind = job_style(job).reel_kind();
     for s in scripts.iter().take(reel_count) {
-        reels::create(
+        let (tags, difficulty) = s.clean_features();
+        let created = reels::create(
             tx.conn(),
             tid,
             reels::NewReel {
@@ -672,6 +673,7 @@ async fn script_step(
             },
         )
         .await?;
+        reels::set_features(tx.conn(), created.id, &tags, difficulty).await?;
     }
     Ok(StepResult::Done(format!(
         "{} reels scripted",

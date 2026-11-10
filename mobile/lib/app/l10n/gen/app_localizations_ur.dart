@@ -609,4 +609,183 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get recordingLabel => 'ریکارڈنگ';
+
+  @override
+  String get keepGoing => 'جاری رکھیں';
+
+  @override
+  String get keepGoingHint => 'آپ کے لیے چنی گئی چند اور ریلز، جب چاہیں۔';
+
+  @override
+  String get sendReel => 'بھیجیں';
+
+  @override
+  String get notForMe => 'میرے لیے نہیں';
+
+  @override
+  String get notForMeDone => 'ٹھیک ہے۔ ایسی ریلز کم ہوں گی۔';
+
+  @override
+  String reasonShared(String name) {
+    return '$name نے بھیجی';
+  }
+
+  @override
+  String reasonMandatory(String topic) {
+    return 'لازمی · $topic';
+  }
+
+  @override
+  String reasonFollowed(String topic) {
+    return 'آپ $topic فالو کرتے ہیں';
+  }
+
+  @override
+  String reasonInterest(String topic) {
+    return 'کیونکہ آپ کو $topic پسند ہے';
+  }
+
+  @override
+  String reasonPopular(String place) {
+    return '$place میں مقبول';
+  }
+
+  @override
+  String reasonNew(String topic) {
+    return '$topic میں نیا';
+  }
+
+  @override
+  String get reasonExplore => 'آزمانے کے لیے کچھ نیا';
+
+  @override
+  String get reasonReview => 'فوری دہرائی';
+
+  @override
+  String reasonFrom(String topic) {
+    return '$topic سے';
+  }
+
+  @override
+  String get practiceTitle => 'مشق';
+
+  @override
+  String get practiceLoading => 'آپ کی اگلی ریلز چن رہے ہیں…';
+
+  @override
+  String get practiceError => 'مزید ریلز لوڈ نہیں ہو سکیں۔';
+
+  @override
+  String get breakTitle => 'مختصر وقفے کا وقت';
+
+  @override
+  String get breakBody =>
+      'انگڑائی لیں، اسکرین سے نظر ہٹائیں، پانی پئیں۔ اگلی ریل انتظار کرے گی۔';
+
+  @override
+  String get breakContinue => 'تیار ہوں تو اوپر سوائپ کریں';
+
+  @override
+  String get breakStop => 'ابھی رک جائیں';
+
+  @override
+  String get practiceEndTitle => 'فی الحال اتنا ہی';
+
+  @override
+  String get practiceEndDailyCap =>
+      'آج کا مشق کا وقت پورا ہو گیا۔ کل ملتے ہیں۔';
+
+  @override
+  String get practiceEndSessionCap =>
+      'یہ ایک مکمل سیشن تھا۔ مزید کے لیے بعد میں آئیں۔';
+
+  @override
+  String get practiceEndOutsideHours => 'مشق کام کے اوقات میں کھلتی ہے۔';
+
+  @override
+  String get practiceEndPaused => 'آپ کی یاد دہانیاں اور مشق رکی ہوئی ہیں۔';
+
+  @override
+  String get practiceEndExhausted =>
+      'آپ نے فی الحال سب دیکھ لیا۔ نئی ریلز جلد آئیں گی۔';
+
+  @override
+  String get practiceEndDisabled => 'آپ کی کمپنی میں مشق بند ہے۔';
+
+  @override
+  String get practiceBackToToday => 'آج پر واپس';
+
+  @override
+  String get shareTitle => 'ساتھیوں کو بھیجیں';
+
+  @override
+  String get shareSearch => 'نام سے تلاش کریں';
+
+  @override
+  String get shareNote => 'نوٹ شامل کریں (اختیاری)';
+
+  @override
+  String get shareNone => 'کوئی ساتھی نہیں ملا۔';
+
+  @override
+  String shareSent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ساتھیوں کو بھیجی گئی',
+      one: '1 ساتھی کو بھیجی گئی',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareSendCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count کو بھیجیں',
+      zero: 'بھیجیں',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get topicsTitle => 'آپ کے موضوعات';
+
+  @override
+  String get topicsSubtitle =>
+      'جو زیادہ چاہیں اسے فالو کریں، جو آپ کے لیے نہیں اسے خاموش کریں۔ لازمی موضوعات ہمیشہ رہتے ہیں۔';
+
+  @override
+  String get topicsPersonalized => 'میری ریلز ذاتی بنائیں';
+
+  @override
+  String get topicsPersonalizedHint =>
+      'بند: ریلز آپ کی کمپنی کی ترتیب میں آتی ہیں، آپ کی دلچسپی کے بغیر۔';
+
+  @override
+  String get topicFollow => 'فالو';
+
+  @override
+  String get topicMute => 'خاموش';
+
+  @override
+  String get topicRequired => 'لازمی';
+
+  @override
+  String topicInterest(int value) {
+    return 'دلچسپی $value %';
+  }
+
+  @override
+  String get topicsTags => 'آپ کا رجحان';
+
+  @override
+  String get topicsOpen => 'آپ کے موضوعات';
+
+  @override
+  String get topicsOpenHint => 'فالو، خاموش، اور آپ کی ریلز کیسے چنی جاتی ہیں';
+
+  @override
+  String get topicsMuteRequired => 'لازمی موضوعات خاموش نہیں ہو سکتے۔';
 }

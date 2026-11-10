@@ -152,7 +152,7 @@ impl ScriptWriter for ClaudeWriter {
 
     async fn write_reels(&self, input: ScriptInput) -> Result<Vec<ReelScript>, ProviderError> {
         let prompt = format!(
-            "Topic: {}\nLanguage: {}\nPresenter name: {}\nSource title: {}\nBrief: {}\nKey ideas:\n{}\n\nSource text:\n{}\n\nWrite {} reels. Return {{\"reels\": [{{\"title\", \"script\" (45-60 seconds spoken, first person, concrete), \"caption_line\" (<= 70 chars), \"source_citation\"}}]}}",
+            "Topic: {}\nLanguage: {}\nPresenter name: {}\nSource title: {}\nBrief: {}\nKey ideas:\n{}\n\nSource text:\n{}\n\nWrite {} reels. Return {{\"reels\": [{{\"title\", \"script\" (45-60 seconds spoken, first person, concrete), \"caption_line\" (<= 70 chars), \"source_citation\", \"tags\" (2-5 short lowercase subject tags), \"difficulty\" (1 easy to 5 hard)}}]}}",
             input.topic_name,
             input.language,
             input.presenter_name,

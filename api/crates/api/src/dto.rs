@@ -572,6 +572,8 @@ pub struct DailyPlan {
     pub items: Vec<DailyPlanItem>,
     pub stats: UserStats,
     pub yesterday: Option<Yesterday>,
+    /// The company offers "keep going" practice after the minute (the budget may still be spent).
+    pub practice_available: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -848,4 +850,216 @@ pub struct Health {
 
 pub fn parse_options(v: &serde_json::Value) -> Vec<QuestionOption> {
     serde_json::from_value(v.clone()).unwrap_or_default()
+}
+
+// ---------------------------------------------------------------- learning engine
+
+pub use reelearn_domain::engine::EngineSettings;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PracticeBudget {
+    pub open: bool,
+    pub stop: Option<String>,
+    pub remaining_today_s: Option<i64>,
+    pub remaining_session_s: Option<i64>,
+    pub break_every_s: Option<i64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NextItem {
+    pub id: Uuid,
+    pub position: i32,
+    pub kind: PlanItemKind,
+    /// shared | mandatory | followed | interest | popular | new | explore | assigned | catalog | review
+    pub reason: String,
+    /// The topic name, the colleague's first name or the cohort, for the reason line.
+    pub reason_detail: Option<String>,
+    pub reel: Option<ReelPlayable>,
+    pub question: Option<Question>,
+    pub review_note: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NextBatch {
+    pub session_id: Uuid,
+    pub items: Vec<NextItem>,
+    pub budget: PracticeBudget,
+    pub autoplay_next: bool,
+    pub peer_sharing: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EngagementEventIn {
+    pub reel_id: Uuid,
+    pub kind: reelearn_domain::EngagementKind,
+    pub watched_ms: Option<i32>,
+    pub position: Option<i16>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct EngagementBatch {
+    pub session_id: Option<Uuid>,
+    /// Practice time since the last batch, in milliseconds (capped at 3 minutes per call).
+    pub active_ms: Option<i64>,
+    #[serde(default)]
+    pub events: Vec<EngagementEventIn>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MyTopic {
+    pub topic_id: Uuid,
+    pub name: String,
+    pub is_mandatory: bool,
+    pub assigned: bool,
+    pub preference: Option<String>,
+    /// 0..100, from the decayed interest score.
+    pub interest: i32,
+    pub published_reels: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagInterest {
+    pub tag: String,
+    pub interest: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MyInterests {
+    /// Off: practice is ordered by assignment and recency only, without interest or colleague activity.
+    pub personalized: bool,
+    pub topics: Vec<MyTopic>,
+    pub top_tags: Vec<TagInterest>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PersonalizationUpdate {
+    pub enabled: bool,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TopicPreferenceUpdate {
+    pub preference: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Colleague {
+    pub id: Uuid,
+    pub full_name: String,
+    pub job_title: Option<String>,
+    pub location: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ShareCreate {
+    pub reel_id: Uuid,
+    pub recipient_ids: Vec<Uuid>,
+    pub note: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ShareResult {
+    pub sent: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EngineConfig {
+    pub settings: EngineSettings,
+    pub presets: std::collections::BTreeMap<String, EngineSettings>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsightDay {
+    pub day: NaiveDate,
+    pub sessions: i64,
+    pub practice_minutes: f64,
+    pub starts: i64,
+    pub completions: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsightTopic {
+    pub topic_id: Uuid,
+    pub name: String,
+    pub interested: i64,
+    pub followers: i64,
+    pub muted: i64,
+    pub avg_interest: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsightTag {
+    pub tag: String,
+    pub interested: i64,
+    pub avg_interest: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsightCohort {
+    pub location: String,
+    pub learners: i64,
+    pub sessions: i64,
+    pub practice_minutes: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsightBand {
+    pub band: i16,
+    pub label: String,
+    pub starts: i64,
+    pub completion_rate: f64,
+    pub skip_rate: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsightReason {
+    pub reason: String,
+    pub impressions: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsightReel {
+    pub reel_id: Uuid,
+    pub title: String,
+    pub topic_name: String,
+    pub duration_ms: i32,
+    pub impressions: i64,
+    pub starts: i64,
+    pub completion_rate: f64,
+    pub skip_rate: f64,
+    pub saves: i64,
+    pub shares: i64,
+    pub not_relevant: i64,
+    pub correct_rate: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InsightSharing {
+    pub shares: i64,
+    pub senders: i64,
+    pub recipients: i64,
+    pub opened_rate: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EngineInsights {
+    pub range: String,
+    pub intensity: String,
+    pub sessions: i64,
+    pub learners_practising: i64,
+    pub practice_minutes: f64,
+    pub avg_session_minutes: f64,
+    pub avg_minutes_per_learner: f64,
+    pub items_per_session: f64,
+    pub completion_rate: f64,
+    pub skip_rate: f64,
+    pub saves: i64,
+    pub not_relevant: i64,
+    pub sharing: InsightSharing,
+    pub daily: Vec<InsightDay>,
+    pub topics: Vec<InsightTopic>,
+    pub tags: Vec<InsightTag>,
+    pub cohorts: Vec<InsightCohort>,
+    pub bands: Vec<InsightBand>,
+    pub reasons: Vec<InsightReason>,
+    pub reels: Vec<InsightReel>,
 }

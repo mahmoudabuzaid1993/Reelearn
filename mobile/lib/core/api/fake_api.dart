@@ -47,6 +47,25 @@ class FakeApi implements ReelearnApi {
   TeamReadiness _team = Fixtures.team;
   final List<String> nudgedUserIds = [];
   final List<MePatch> patches = [];
+
+  // learning engine
+  /// Practice is open (the company offers it and the person is not paused).
+  bool practiceOpen = true;
+
+  /// Session cap in seconds; null means no cap.
+  int? sessionCapS = 600;
+
+  /// Pause card every this many seconds; null means never.
+  int? breakEveryS = 300;
+  final List<EngagementBatch> engagementBatches = [];
+  final List<({String reelId, List<String> to, String? note})> shares = [];
+  final List<String> endedSessions = [];
+  final Map<String, Set<String>> _served = {};
+  final Map<String, int> _activeMs = {};
+  int _sessionSeq = 0;
+  int _itemSeq = 0;
+  bool _sharedPending = true;
+  MyInterests _interests = Fixtures.interests;
   int _recordingSeq = 0;
 
   // ------------------------------------------------------------ test seams
@@ -424,6 +443,201 @@ class FakeApi implements ReelearnApi {
         return reel.copyWith(saved: _saved.contains(reelId));
       });
 
+  // ------------------------------------------------------------ engine
+
+  @override
+  Future<NextBatch> getNext({String? sessionId, int? limit}) => _run(() {
+        _requireUser();
+        final id = sessionId != null && _served.containsKey(sessionId)
+            ? sessionId
+            : '0f3a3c2e-0000-4000-8000-0000000se${(++_sessionSeq).toString().padLeft(3, '0')}';
+        final served = _served.putIfAbsent(id, () => <String>{});
+        final active = _activeMs[id] ?? 0;
+        PracticeStop? stop;
+        if (!practiceOpen) {
+          stop = PracticeStop.disabled;
+        } else if (sessionCapS != null && active >= sessionCapS! * 1000) {
+          stop = PracticeStop.sessionCap;
+        }
+        PracticeBudget budget(PracticeStop? s) => PracticeBudget(
+              open: s == null,
+              stop: s,
+              remainingSessionS: sessionCapS == null
+                  ? null
+                  : (sessionCapS! - active ~/ 1000).clamp(0, sessionCapS!),
+              breakEveryS: breakEveryS,
+            );
+        if (stop != null) {
+          return NextBatch(
+            sessionId: id,
+            items: const [],
+            budget: budget(stop),
+          );
+        }
+        final want = limit ?? 4;
+        final items = <NextItem>[];
+        var position = served.length;
+        if (_sharedPending && !served.contains(Fixtures.reel2Id)) {
+          _sharedPending = false;
+          served.add(Fixtures.reel2Id);
+          items.add(
+            NextItem(
+              id: _nextItemId(),
+              position: position++,
+              kind: PlanItemKind.reel,
+              reason: 'shared',
+              reasonDetail: 'Fatimah',
+              reel: Fixtures.reel2
+                  .copyWith(saved: _saved.contains(Fixtures.reel2Id)),
+            ),
+          );
+        }
+        final muted = {
+          for (final t in _interests.topics)
+            if (t.preference == TopicPreference.mute) t.name,
+        };
+        for (final p in Fixtures.practice) {
+          if (items.length >= want) break;
+          if (served.contains(p.reel.id) || muted.contains(p.reel.topicName)) {
+            continue;
+          }
+          served.add(p.reel.id);
+          items.add(
+            NextItem(
+              id: _nextItemId(),
+              position: position++,
+              kind: PlanItemKind.reel,
+              reason: p.reason,
+              reasonDetail: p.detail,
+              reel: p.reel.copyWith(saved: _saved.contains(p.reel.id)),
+            ),
+          );
+          if (items.length == 3 &&
+              !served.contains('review:${Fixtures.question3Id}')) {
+            served.add('review:${Fixtures.question3Id}');
+            items.add(
+              NextItem(
+                id: _nextItemId(),
+                position: position++,
+                kind: PlanItemKind.questionOnly,
+                reason: 'review',
+                question: Fixtures.question3,
+                reviewNote: 'Asked again · day 3',
+              ),
+            );
+          }
+        }
+        return NextBatch(
+          sessionId: id,
+          items: items,
+          budget: budget(items.isEmpty ? PracticeStop.exhausted : null),
+        );
+      });
+
+  @override
+  Future<void> postEvents(
+    EngagementBatch batch, {
+    required String idempotencyKey,
+  }) =>
+      _run(() {
+        _requireUser();
+        if (_idempotent.containsKey(idempotencyKey)) return;
+        _idempotent[idempotencyKey] = const {};
+        engagementBatches.add(batch);
+        final sid = batch.sessionId;
+        if (sid != null) {
+          _activeMs[sid] =
+              (_activeMs[sid] ?? 0) + (batch.activeMs ?? 0).clamp(0, 180000);
+        }
+      });
+
+  @override
+  Future<void> endSession(String sessionId) => _run(() {
+        _requireUser();
+        endedSessions.add(sessionId);
+      });
+
+  @override
+  Future<MyInterests> getMyTopics() => _run(() {
+        _requireUser();
+        return _interests;
+      });
+
+  @override
+  Future<MyInterests> setTopicPreference(
+    String topicId,
+    TopicPreference? preference,
+  ) =>
+      _run(() {
+        _requireUser();
+        final topic =
+            _interests.topics.where((t) => t.topicId == topicId).firstOrNull;
+        if (topic == null) _problem(404, 'Topic not found');
+        if (preference == TopicPreference.mute && topic.isMandatory) {
+          _problem(
+            422,
+            'Validation failed',
+            detail: 'a mandatory topic cannot be muted',
+          );
+        }
+        _interests = MyInterests(
+          personalized: _interests.personalized,
+          topics: [
+            for (final t in _interests.topics)
+              t.topicId == topicId
+                  ? t.copyWith(
+                      preference: preference,
+                      clear: preference == null,
+                    )
+                  : t,
+          ],
+          topTags: _interests.topTags,
+        );
+        return _interests;
+      });
+
+  @override
+  Future<MyInterests> setPersonalization({required bool enabled}) => _run(() {
+        _requireUser();
+        _interests = MyInterests(
+          personalized: enabled,
+          topics: _interests.topics,
+          topTags: _interests.topTags,
+        );
+        return _interests;
+      });
+
+  @override
+  Future<List<Colleague>> getColleagues({String? query}) => _run(() {
+        final me = _requireUser();
+        final q = (query ?? '').trim().toLowerCase();
+        return [
+          for (final c in Fixtures.colleagues)
+            if (c.id != me.id &&
+                (q.isEmpty || c.fullName.toLowerCase().contains(q)))
+              c,
+        ];
+      });
+
+  @override
+  Future<int> shareReel(
+    String reelId,
+    List<String> recipientIds, {
+    String? note,
+  }) =>
+      _run(() {
+        _requireUser();
+        if (recipientIds.isEmpty || recipientIds.length > 10) {
+          _problem(
+            422,
+            'Validation failed',
+            detail: 'send to 1 to 10 colleagues',
+          );
+        }
+        shares.add((reelId: reelId, to: recipientIds, note: note));
+        return recipientIds.length;
+      });
+
   // ------------------------------------------------------------ manager
 
   @override
@@ -495,6 +709,13 @@ class FakeApi implements ReelearnApi {
           status: 'draft',
         );
       });
+}
+
+// ------------------------------------------------------------ learning engine
+
+extension on FakeApi {
+  String _nextItemId() =>
+      '0f3a3c2e-0000-4000-8000-${(++_itemSeq).toString().padLeft(12, '0')}';
 }
 
 class _Challenge {

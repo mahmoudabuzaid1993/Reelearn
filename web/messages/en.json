@@ -37,6 +37,7 @@
     "library": "Library",
     "people": "People",
     "reports": "Reports",
+    "engine": "Learning engine",
     "settings": "Settings",
     "audit": "Audit"
   },
@@ -840,6 +841,275 @@
       "subtitle": "When reels arrive. Shift windows, prayer and Ramadan awareness, and the daily cadence.",
       "finish": "Save and open the dashboard",
       "channelNote": "Channel per group (app, WhatsApp or both) is set on the Topics page when you assign a topic."
+    }
+  },
+  "engine": {
+    "title": "Learning engine",
+    "subtitle": "How Reelearn chooses each person's next reel, how long practice can run, and what it is learning about interests.",
+    "tabs": {
+      "tuning": "Tuning",
+      "insights": "Insights"
+    },
+    "intensity": "Intensity",
+    "intensityHint": "Start from a preset. Changing any value below makes it Custom.",
+    "presets": {
+      "gentle": {
+        "name": "Gentle",
+        "hint": "The daily minute only, ordered by the engine."
+      },
+      "balanced": {
+        "name": "Balanced",
+        "hint": "The minute, then a short practice with breaks."
+      },
+      "intense": {
+        "name": "Intense",
+        "hint": "Longer practice, stronger interest and colleague signals."
+      },
+      "maximum": {
+        "name": "Maximum",
+        "hint": "No practice caps, strongest engagement weights, three reminders a day."
+      },
+      "custom": {
+        "name": "Custom"
+      }
+    },
+    "facts": {
+      "noPractice": "No practice after the minute",
+      "practiceNoCap": "Practice without a daily cap",
+      "practiceCap": "Up to {minutes} minutes of practice a day",
+      "reminders": "{count, plural, =0 {No reminders} one {# reminder a day} other {# reminders a day}}",
+      "noBreaks": "No pause suggestions",
+      "breaks": "A pause suggested every {minutes} minutes"
+    },
+    "valueModel": "What decides the next reel",
+    "valueModelHint": "Each reel gets a score from these signals. Higher weights matter more; 0 switches a signal off.",
+    "raises": "Raises a reel",
+    "lowers": "Lowers a reel",
+    "guardrails": "Always on, whatever the intensity: people can say \"not for me\", mute optional topics, pause, and turn personalisation off. Mandatory topics are never hidden, and the two penalties never drop below 1.",
+    "weights": {
+      "completion": {
+        "label": "Finished by people like them",
+        "hint": "Compared with reels of the same length, so long reels are not punished."
+      },
+      "learning": {
+        "label": "Right level of challenge",
+        "hint": "Questions people will probably, but not certainly, get right."
+      },
+      "save": {
+        "label": "Saved",
+        "hint": "Reels people keep for later."
+      },
+      "share": {
+        "label": "Sent to a colleague",
+        "hint": "The strongest sign a reel is worth a minute."
+      },
+      "interest": {
+        "label": "Personal interest",
+        "hint": "What each person keeps finishing, saving and asking for."
+      },
+      "urgency": {
+        "label": "Mandatory and due soon",
+        "hint": "Mandatory topics, more so near their end date."
+      },
+      "freshness": {
+        "label": "New",
+        "hint": "Recently published reels."
+      },
+      "social": {
+        "label": "Popular with their team",
+        "hint": "What their location, job and team finished this week."
+      },
+      "skip_penalty": {
+        "label": "Quick skips",
+        "hint": "Left in the first three seconds."
+      },
+      "not_relevant_penalty": {
+        "label": "\"Not for me\"",
+        "hint": "People said it is not for their job."
+      },
+      "repeat_penalty": {
+        "label": "Already finished",
+        "hint": "Seen before."
+      }
+    },
+    "groups": {
+      "practice": {
+        "title": "Practice",
+        "hint": "\"Keep going\" after the daily minute."
+      },
+      "discovery": {
+        "title": "Discovery",
+        "hint": "How widely the engine looks beyond what people already like."
+      },
+      "learning": {
+        "title": "Learning",
+        "hint": "Reviews and the difficulty the engine aims for."
+      },
+      "reminders": {
+        "title": "Reminders",
+        "hint": "Messages to people who have not done their minute. Only inside delivery windows."
+      }
+    },
+    "fields": {
+      "continuous_enabled": {
+        "label": "Offer \"Keep going\"",
+        "hint": "Practice after the daily minute."
+      },
+      "practice_outside_work_hours": {
+        "label": "Practice outside work hours",
+        "hint": "Otherwise practice is open only inside the delivery windows."
+      },
+      "autoplay_next": {
+        "label": "Start the next reel automatically",
+        "hint": "After a question is answered."
+      },
+      "open_catalog": {
+        "label": "Open catalogue",
+        "hint": "Include published reels outside each person's assigned topics."
+      },
+      "social_proof": {
+        "label": "Colleague activity",
+        "hint": "Use what teams finish and show \"Popular with your team\"."
+      },
+      "peer_sharing": {
+        "label": "Send to a colleague",
+        "hint": "People can send a reel to up to ten colleagues."
+      },
+      "daily_minutes_cap": {
+        "label": "Practice per day",
+        "hint": "Per person, across sessions."
+      },
+      "session_minutes_cap": {
+        "label": "Practice per session",
+        "hint": "Then the session closes."
+      },
+      "break_reminder_minutes": {
+        "label": "Suggest a pause every",
+        "hint": "A pause card inside practice."
+      },
+      "batch_size": {
+        "label": "Reels per request",
+        "hint": "How many the phone loads at a time."
+      },
+      "exploration_rate": {
+        "label": "Exploration",
+        "hint": "Share of slots given to reels few people have seen."
+      },
+      "interest_half_life_days": {
+        "label": "Interest memory",
+        "hint": "After this many days an interest signal counts half."
+      },
+      "max_same_topic_in_row": {
+        "label": "Same topic in a row",
+        "hint": "Longest run of reels from one topic."
+      },
+      "review_every": {
+        "label": "Review question",
+        "hint": "A spaced-repetition question between practice reels."
+      },
+      "target_correct_rate": {
+        "label": "Target answer rate",
+        "hint": "Research points to about 85 % for learning."
+      },
+      "max_nudges_per_day": {
+        "label": "Reminders per day",
+        "hint": "Per person."
+      },
+      "reengage_after_hours": {
+        "label": "Remind after",
+        "hint": "Hours away before a reminder."
+      }
+    },
+    "zero": {
+      "noCap": "No cap",
+      "never": "Never",
+      "off": "Off"
+    },
+    "units": {
+      "minutes": "{value} min",
+      "days": "{value} days",
+      "hours": "{value} h",
+      "perDay": "{value} a day",
+      "items": "{value}",
+      "everyN": "every {value} reels",
+      "inARow": "{value} in a row"
+    },
+    "unsaved": "{count, plural, one {# unsaved change} other {# unsaved changes}}",
+    "discard": "Discard",
+    "save": "Save changes",
+    "saved": "Engine settings saved",
+    "savedPreset": "Switched to {preset}",
+    "saveFailed": "Could not save the engine settings",
+    "insights": {
+      "intensityNow": "Current intensity: {intensity}",
+      "practiceMinutes": "Practice minutes",
+      "learners": "{count, plural, one {# person} other {# people}} practising",
+      "avgSession": "Average session",
+      "minutesShort": "{value} min",
+      "itemsPerSession": "{value} reels a session",
+      "perLearner": "Per person",
+      "sessions": "{count, plural, one {# session} other {# sessions}}",
+      "completion": "Finished",
+      "skipRate": "{value} skipped in 3 s",
+      "shares": "Sent to colleagues",
+      "opened": "{value} opened",
+      "sharers": "People sending",
+      "recipients": "to {count, plural, one {# colleague} other {# colleagues}}",
+      "saves": "Saved",
+      "notForMe": "Not for me",
+      "notForMeHint": "Lowers similar reels for that person",
+      "daily": "Practice per day",
+      "dailyHint": "Minutes of practice after the daily minute.",
+      "day": "Day",
+      "sessionsCol": "Sessions",
+      "interestByTopic": "Interest by topic",
+      "interestByTopicHint": "People with a strong interest, and their own follow and mute choices.",
+      "topic": "Topic",
+      "interested": "Interested",
+      "followers": "Following",
+      "muted": "Muted",
+      "interestByTag": "Interest by subject",
+      "interestByTagHint": "Subjects tagged by the studio, by how many people lean toward them.",
+      "whyShown": "Why reels were shown",
+      "whyShownHint": "The main reason for each reel the engine served.",
+      "reasons": {
+        "shared": "Sent by a colleague",
+        "mandatory": "Mandatory",
+        "followed": "Followed topic",
+        "interest": "Interest",
+        "popular": "Popular with team",
+        "new": "New",
+        "explore": "Exploring",
+        "assigned": "Assigned",
+        "catalog": "Catalogue",
+        "review": "Review",
+        "unknown": "Other"
+      },
+      "byLength": "Finished by length",
+      "byLengthHint": "Each reel is compared with others of the same length.",
+      "length": "Length",
+      "starts": "Started",
+      "finished": "Finished",
+      "skipped": "Skipped in 3 s",
+      "bands": {
+        "0": "Under 20 s",
+        "1": "20 to 35 s",
+        "2": "35 to 50 s",
+        "3": "50 to 70 s",
+        "4": "70 s and over"
+      },
+      "reels": "Reel performance",
+      "reelsHint": "What people do with each reel. Use it to fix or retire weak reels.",
+      "reel": "Reel",
+      "savesCol": "Saved",
+      "sharesCol": "Sent",
+      "correct": "Correct",
+      "locations": "Practice by location",
+      "locationsHint": "Locations with fewer than three people are left out.",
+      "location": "Location",
+      "learnersCol": "People",
+      "noData": "No data in this period.",
+      "privacy": "Interest and engagement signals are used only to choose reels. They never appear in readiness, in manager views or in performance reviews, and each person can see and download them."
     }
   }
 }

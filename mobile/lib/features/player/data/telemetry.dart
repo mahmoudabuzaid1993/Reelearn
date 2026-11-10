@@ -23,6 +23,11 @@ Future<void> sendQueuedEvent(ReelearnApi api, QueuedEvent event) async {
         AnswerEvent.fromJson(event.body),
         idempotencyKey: event.id,
       );
+    case QueuedKind.events:
+      await api.postEvents(
+        EngagementBatch.fromJson(event.body),
+        idempotencyKey: event.id,
+      );
   }
 }
 
@@ -76,6 +81,28 @@ class TelemetryService {
         reelId: reelId,
         watchedMs: watchedMs,
         completed: completed,
+      ).toJson(),
+      createdAt: _clock().millisecondsSinceEpoch,
+    );
+    await _queue.enqueue(event);
+    unawaited(_queue.replay());
+  }
+
+  /// Engagement signals (start, quick skip, rewatch, not for me) and practice
+  /// time, through the same offline queue as watches.
+  Future<void> signals({
+    List<EngagementSignal> events = const [],
+    String? sessionId,
+    int? activeMs,
+  }) async {
+    if (events.isEmpty && (activeMs ?? 0) <= 0) return;
+    final event = QueuedEvent(
+      id: _uuid.v4(),
+      kind: QueuedKind.events,
+      body: EngagementBatch(
+        sessionId: sessionId,
+        activeMs: activeMs,
+        events: events,
       ).toJson(),
       createdAt: _clock().millisecondsSinceEpoch,
     );

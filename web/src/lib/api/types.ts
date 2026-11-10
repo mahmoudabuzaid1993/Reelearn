@@ -42,6 +42,11 @@ export type Channel = Schemas["Channel"];
 export type Role = Schemas["Role"];
 export type UserStatus = Schemas["UserStatus"];
 export type Region = Schemas["Region"];
+export type EngineSettings = Schemas["EngineSettings"];
+export type EngineWeights = Schemas["Weights"];
+export type EngineConfig = Schemas["EngineConfig"];
+export type EngineInsights = Schemas["EngineInsights"];
+export type Intensity = EngineSettings["intensity"];
 
 export type Quote =
   paths["/admin/generation-jobs/quote"]["post"]["responses"]["200"]["content"]["application/json"];

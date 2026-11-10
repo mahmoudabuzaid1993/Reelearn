@@ -7,7 +7,8 @@ import 'key_value_store.dart';
 
 enum QueuedKind {
   watch('watch'),
-  answer('answer');
+  answer('answer'),
+  events('events');
 
   const QueuedKind(this.wire);
   final String wire;

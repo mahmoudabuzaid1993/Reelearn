@@ -48,3 +48,7 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8080/v1   # Android emula
 
 - Camera recording and video playback on a physical device or simulator (widget tests use a stub media builder).
 - The app against the live API end to end (the FakeApi mirrors the seed; the HTTP client is exercised by the interceptor tests only).
+
+## Learning engine (2026-11-09)
+
+- Practice ("Keep going") on the same swipe stack with reason lines, pause cards and an end card; "Not for me", send to a colleague, quick-skip and rewatch signals; "Your topics" with follow, mute and the personalisation switch; tests for the controller and screens.

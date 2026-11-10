@@ -5,6 +5,7 @@
 pub mod audit;
 pub mod auth;
 pub mod deliveries;
+pub mod engine;
 pub mod exports;
 pub mod groups;
 pub mod integrations;

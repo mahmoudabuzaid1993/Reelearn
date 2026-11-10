@@ -11,6 +11,9 @@ import { toListItem } from "./fixtures/content";
 import { dashboard, hrisSyncLog, reportOverview, reportsByGroup, reportsByTopic } from "./fixtures/tenant";
 import { transcript } from "./fixtures/content";
 import { createJob, materializeJob, retryJob } from "./jobs";
+import { engineInsights, enginePresets } from "./fixtures/engine";
+import { changedFields, labelFor, NUMBER_RANGES, PRESETS, WEIGHT_RANGES, type NumberKey, type WeightKey } from "@/features/engine/logic/engine";
+import type { EngineSettings } from "@/lib/api/types";
 
 const BASE = apiBaseUrl();
 const url = (path: string) => `${BASE}${path}`;
@@ -609,6 +612,39 @@ export const handlers = [
 
   // ---------------------------------------------------------------- settings
   http.get(url("/admin/integrations"), authed(() => HttpResponse.json(db.integrations))),
+  http.get(url("/admin/engine"), authed(() => HttpResponse.json({ settings: db.engine ?? enginePresets.balanced, presets: enginePresets }))),
+  http.put(url("/admin/engine"), authed(async ({ request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const current = db.engine ?? enginePresets.balanced!;
+    let next: EngineSettings;
+    const keys = Object.keys(body);
+    if (keys.length === 1 && typeof body.intensity === "string" && (PRESETS as string[]).includes(body.intensity)) {
+      next = enginePresets[body.intensity]!;
+    } else {
+      const { intensity: _ignored, weights, ...rest } = body as Partial<EngineSettings>;
+      void _ignored;
+      next = { ...current, ...rest, weights: { ...current.weights, ...(weights ?? {}) } } as EngineSettings;
+      const errors: { field: string; message: string }[] = [];
+      for (const [k, r] of Object.entries(WEIGHT_RANGES)) {
+        const v = next.weights[k as WeightKey] ?? 0;
+        if (v < r.min || v > r.max) errors.push({ field: `weights.${k}`, message: `must be between ${r.min} and ${r.max}` });
+      }
+      for (const [k, r] of Object.entries(NUMBER_RANGES)) {
+        const v = next[k as NumberKey];
+        if (v < r.min || v > r.max) errors.push({ field: k, message: `must be between ${r.min} and ${r.max}` });
+      }
+      if (errors.length > 0) return problem(422, "Validation failed", "One or more fields are invalid", errors);
+      next = { ...next, intensity: labelFor(next, enginePresets) };
+    }
+    record({ actor: null, action: "engine.update", entity: "tenant", entity_id: null, diff: { changed: changedFields(current, next) } as never });
+    db.engine = next;
+    persist();
+    return HttpResponse.json({ settings: next, presets: enginePresets });
+  })),
+  http.get(url("/admin/engine/insights"), authed(({ request }) => {
+    const range = new URL(request.url).searchParams.get("range") ?? "30d";
+    return HttpResponse.json({ ...engineInsights, range, intensity: (db.engine ?? enginePresets.balanced!).intensity });
+  })),
   http.put(url("/admin/integrations/:kind"), authed(async ({ params, request }) => {
     const body = (await request.json()) as Record<string, unknown>;
     const publicConfig = Object.fromEntries(Object.entries(body).filter(([k]) => !/secret|token|key|password/i.test(k)));

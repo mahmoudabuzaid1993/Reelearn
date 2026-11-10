@@ -30,6 +30,8 @@ pub struct UserRow {
     pub extra_reels_on: bool,
     pub paused_until: Option<NaiveDate>,
     pub last_seen_at: Option<DateTime<Utc>>,
+    /// The person allows interest-based ordering (see `docs/engine.md`).
+    pub personalized: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -54,7 +56,7 @@ pub struct GroupRef {
     pub name: String,
 }
 
-const COLS: &str = "id, tenant_id, role, status, full_name, phone_e164, email, employee_no, preferred_language, ui_language, manager_id, location, job_title, delivery_channel, delivery_slot, shift_start, shift_end, captions_on, reminders_on, extra_reels_on, paused_until, last_seen_at, created_at, updated_at";
+const COLS: &str = "id, tenant_id, role, status, full_name, phone_e164, email, employee_no, preferred_language, ui_language, manager_id, location, job_title, delivery_channel, delivery_slot, shift_start, shift_end, captions_on, reminders_on, extra_reels_on, paused_until, last_seen_at, personalized, created_at, updated_at";
 
 pub async fn get(conn: &mut PgConnection, id: Uuid) -> Result<UserRow, DbError> {
     find(conn, id).await?.ok_or(DbError::NotFound("user"))
@@ -414,4 +416,13 @@ pub async fn has_devices(conn: &mut PgConnection, user_id: Uuid) -> Result<bool,
             .await?
             > 0,
     )
+}
+
+pub async fn set_personalized(conn: &mut PgConnection, id: Uuid, on: bool) -> Result<(), DbError> {
+    sqlx::query("UPDATE users SET personalized = $2 WHERE id = $1")
+        .bind(id)
+        .bind(on)
+        .execute(conn)
+        .await?;
+    Ok(())
 }

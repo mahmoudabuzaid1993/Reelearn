@@ -31,6 +31,14 @@ class SwipeStack extends StatefulWidget {
     this.captionsDefault = true,
     this.mediaBuilder,
     this.reducedMotion,
+    this.onLeave,
+    this.onRewatch,
+    this.onNotForMe,
+    this.onShare,
+    this.onKeepGoing,
+    this.extraCardBuilder,
+    this.showSegments = true,
+    this.autoAdvanceAfterAnswer,
     super.key,
   });
 
@@ -61,6 +69,31 @@ class SwipeStack extends StatefulWidget {
   /// Null reads `MediaQuery.disableAnimations`.
   final bool? reducedMotion;
 
+  /// Fired when the learner leaves a reel card, with how far they watched;
+  /// under three seconds the screen records a quick skip.
+  final void Function(ReelStackCard card, int watchedMs)? onLeave;
+
+  /// Fired when a finished reel starts again from the top.
+  final void Function(ReelStackCard card)? onRewatch;
+
+  /// "Not for me": the stack moves past the reel and its question.
+  final void Function(ReelStackCard card)? onNotForMe;
+
+  /// "Send to a colleague". Hidden when null.
+  final void Function(ReelStackCard card)? onShare;
+
+  /// "Keep going" on the Done card. Hidden when null.
+  final VoidCallback? onKeepGoing;
+
+  /// Renders practice-only cards (pause, loading, end).
+  final Widget Function(StackCard card)? extraCardBuilder;
+
+  /// Practice runs open-ended, so it hides the per-unit segments.
+  final bool showSegments;
+
+  /// Move on by itself this long after an answer is revealed.
+  final Duration? autoAdvanceAfterAnswer;
+
   static const snapDuration = Duration(milliseconds: 260);
   static const flingVelocity = 700.0;
   static const toastDuration = Duration(milliseconds: 1800);
@@ -87,6 +120,7 @@ class _SwipeStackState extends State<SwipeStack> with TickerProviderStateMixin {
   final Map<String, bool> _saved = {};
   final Map<String, double> _progress = {};
   final Set<String> _watched90 = {};
+  double _height = 0;
 
   List<StackCard> get _cards => widget.cards;
   StackCard get _current => _cards[_index];
@@ -178,6 +212,12 @@ class _SwipeStackState extends State<SwipeStack> with TickerProviderStateMixin {
   }
 
   void _go(int target, double height) {
+    final leaving = _current;
+    if (leaving is ReelStackCard && target != _index) {
+      final ms =
+          ((_progress[leaving.item.id] ?? 0) * leaving.reel.durationMs).round();
+      widget.onLeave?.call(leaving, ms);
+    }
     final dir = target > _index ? -1 : 1;
     if (_reduced(context)) {
       setState(() {
@@ -240,12 +280,34 @@ class _SwipeStackState extends State<SwipeStack> with TickerProviderStateMixin {
         pendingOffline: outcome == null,
       );
     });
+    final wait = widget.autoAdvanceAfterAnswer;
+    if (wait != null) {
+      await Future<void>.delayed(wait);
+      if (!mounted) return;
+      final current = _current;
+      if (current is QuestionStackCard &&
+          current.item.id == id &&
+          _canForward &&
+          _height > 0) {
+        _go(_index + 1, _height);
+      }
+    }
+  }
+
+  void _notForMe(ReelStackCard card) {
+    widget.onNotForMe?.call(card);
+    final next = nextUnitStart(_cards, _index);
+    if (next != null && _height > 0) _go(next, _height);
   }
 
   void _onProgress(ReelStackCard card, int positionMs, int durationMs) {
     if (durationMs <= 0) return;
     final p = positionMs / durationMs;
-    if ((_progress[card.item.id] ?? 0) != p) {
+    final before = _progress[card.item.id] ?? 0;
+    if (_watched90.contains(card.item.id) && before >= 0.9 && p < 0.05) {
+      widget.onRewatch?.call(card);
+    }
+    if (before != p) {
       setState(() => _progress[card.item.id] = p);
     }
     if (p >= 0.9 && !_watched90.contains(card.item.id)) {
@@ -278,6 +340,7 @@ class _SwipeStackState extends State<SwipeStack> with TickerProviderStateMixin {
     return LayoutBuilder(
       builder: (context, constraints) {
         final h = constraints.maxHeight;
+        _height = h;
         return GestureDetector(
           key: const Key('swipe-stack'),
           behavior: HitTestBehavior.opaque,
@@ -311,7 +374,8 @@ class _SwipeStackState extends State<SwipeStack> with TickerProviderStateMixin {
                       child: Row(
                         children: [
                           Expanded(
-                            child: _current is DoneStackCard
+                            child: _current is DoneStackCard ||
+                                    !widget.showSegments
                                 ? const SizedBox.shrink()
                                 : SegmentsBar(states: segments),
                           ),
@@ -413,6 +477,8 @@ class _SwipeStackState extends State<SwipeStack> with TickerProviderStateMixin {
           onToggleSave: () => _toggleSave(card),
           onProgress: (p, d) => _onProgress(card, p, d),
           mediaBuilder: widget.mediaBuilder,
+          onNotForMe: widget.onNotForMe == null ? null : () => _notForMe(card),
+          onShare: widget.onShare == null ? null : () => widget.onShare!(card),
         );
       case QuestionStackCard():
         return QuestionCardView(
@@ -433,7 +499,11 @@ class _SwipeStackState extends State<SwipeStack> with TickerProviderStateMixin {
           stats: latestStats,
           onBackToWork: widget.onBackToWork,
           onOpenSaved: widget.onOpenSaved,
+          onKeepGoing: widget.onKeepGoing,
         );
+      case BreakStackCard() || LoadingStackCard() || PracticeEndStackCard():
+        return widget.extraCardBuilder?.call(card) ??
+            const ColoredBox(color: Brand.paper);
     }
   }
 }

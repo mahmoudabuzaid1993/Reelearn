@@ -1,4 +1,5 @@
-import type { Assignment, AuditEntry, Export, GenerationJob, Group, Integration, Moment, Reel, Source, Tenant, Topic, User } from "@/lib/api/types";
+import type { Assignment, AuditEntry, EngineSettings, Export, GenerationJob, Group, Integration, Moment, Reel, Source, Tenant, Topic, User } from "@/lib/api/types";
+import { enginePresets } from "./fixtures/engine";
 import { assignments, jobs, moments, reels, sources, topics } from "./fixtures/content";
 import { audit, exportsList, groups, integrations, tenant, users } from "./fixtures/tenant";
 
@@ -23,6 +24,7 @@ export interface MockDb {
   exports: Export[];
   integrations: Integration[];
   audit: AuditEntry[];
+  engine: EngineSettings;
   challenges: Record<string, string>;
   onboarding: { topicsDone: boolean; deliveryDone: boolean };
 }
@@ -48,6 +50,7 @@ export function freshDb(): MockDb {
     exports: exportsList,
     integrations,
     audit,
+    engine: enginePresets.balanced!,
     challenges: {},
     onboarding: { topicsDone: true, deliveryDone: true },
   });

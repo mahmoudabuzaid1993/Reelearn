@@ -604,4 +604,180 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recordingLabel => 'جارٍ التسجيل';
+
+  @override
+  String get keepGoing => 'أكمل';
+
+  @override
+  String get keepGoingHint => 'ريلات إضافية اخترناها لك، متى شئت.';
+
+  @override
+  String get sendReel => 'أرسل';
+
+  @override
+  String get notForMe => 'ليس لي';
+
+  @override
+  String get notForMeDone => 'تمام. ريلات أقل من هذا النوع.';
+
+  @override
+  String reasonShared(String name) {
+    return 'أرسله $name';
+  }
+
+  @override
+  String reasonMandatory(String topic) {
+    return 'إلزامي · $topic';
+  }
+
+  @override
+  String reasonFollowed(String topic) {
+    return 'تتابع $topic';
+  }
+
+  @override
+  String reasonInterest(String topic) {
+    return 'لأنك تهتم بـ$topic';
+  }
+
+  @override
+  String reasonPopular(String place) {
+    return 'شائع في $place';
+  }
+
+  @override
+  String reasonNew(String topic) {
+    return 'جديد في $topic';
+  }
+
+  @override
+  String get reasonExplore => 'شيء جديد لتجربته';
+
+  @override
+  String get reasonReview => 'مراجعة سريعة';
+
+  @override
+  String reasonFrom(String topic) {
+    return 'من $topic';
+  }
+
+  @override
+  String get practiceTitle => 'تدريب';
+
+  @override
+  String get practiceLoading => 'نختار ريلاتك التالية…';
+
+  @override
+  String get practiceError => 'تعذّر تحميل المزيد من الريلات.';
+
+  @override
+  String get breakTitle => 'وقت لاستراحة قصيرة';
+
+  @override
+  String get breakBody =>
+      'تمدّد، وأبعد نظرك عن الشاشة، واشرب ماءً. ريلك التالي سينتظرك.';
+
+  @override
+  String get breakContinue => 'اسحب للأعلى عندما تكون جاهزًا';
+
+  @override
+  String get breakStop => 'توقف الآن';
+
+  @override
+  String get practiceEndTitle => 'هذا كل شيء الآن';
+
+  @override
+  String get practiceEndDailyCap => 'وصلت إلى وقت التدريب اليومي. نراك غدًا.';
+
+  @override
+  String get practiceEndSessionCap => 'هذه جلسة كاملة. عد لاحقًا للمزيد.';
+
+  @override
+  String get practiceEndOutsideHours => 'التدريب متاح خلال ساعات العمل.';
+
+  @override
+  String get practiceEndPaused => 'تذكيراتك وتدريبك متوقفة مؤقتًا.';
+
+  @override
+  String get practiceEndExhausted => 'شاهدت كل شيء حاليًا. ريلات جديدة قريبًا.';
+
+  @override
+  String get practiceEndDisabled => 'التدريب غير مفعّل في شركتك.';
+
+  @override
+  String get practiceBackToToday => 'العودة لليوم';
+
+  @override
+  String get shareTitle => 'أرسل إلى زملاء';
+
+  @override
+  String get shareSearch => 'ابحث بالاسم';
+
+  @override
+  String get shareNote => 'أضف ملاحظة (اختياري)';
+
+  @override
+  String get shareNone => 'لا يوجد زملاء.';
+
+  @override
+  String shareSent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُرسل إلى $count زملاء',
+      one: 'أُرسل إلى زميل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareSendCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أرسل إلى $count',
+      zero: 'أرسل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get topicsTitle => 'مواضيعك';
+
+  @override
+  String get topicsSubtitle =>
+      'تابع ما تريد المزيد منه، واكتم ما لا يخصك. المواضيع الإلزامية تبقى دائمًا.';
+
+  @override
+  String get topicsPersonalized => 'خصّص ريلاتي';
+
+  @override
+  String get topicsPersonalizedHint =>
+      'عند الإيقاف: تأتي الريلات بترتيب شركتك دون استخدام اهتماماتك.';
+
+  @override
+  String get topicFollow => 'تابع';
+
+  @override
+  String get topicMute => 'اكتم';
+
+  @override
+  String get topicRequired => 'إلزامي';
+
+  @override
+  String topicInterest(int value) {
+    return 'الاهتمام $value %';
+  }
+
+  @override
+  String get topicsTags => 'ما تميل إليه';
+
+  @override
+  String get topicsOpen => 'مواضيعك';
+
+  @override
+  String get topicsOpenHint => 'المتابعة والكتم وكيف تُختار ريلاتك';
+
+  @override
+  String get topicsMuteRequired => 'لا يمكن كتم المواضيع الإلزامية.';
 }

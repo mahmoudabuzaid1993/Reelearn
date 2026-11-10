@@ -77,6 +77,30 @@ pub struct ReelScript {
     /// The one line burned into the frame.
     pub caption_line: String,
     pub source_citation: String,
+    /// 2 to 5 short lowercase subject tags; the learning engine tracks interest in them.
+    #[serde(default)]
+    pub tags: Vec<String>,
+    /// 1 (easy) to 5 (hard); the engine's prior for the question's answer rate.
+    #[serde(default)]
+    pub difficulty: Option<i16>,
+}
+
+impl ReelScript {
+    /// Tags trimmed, lower-cased, de-duplicated and capped at five; difficulty clamped to 1..5.
+    pub fn clean_features(&self) -> (Vec<String>, Option<i16>) {
+        let mut tags: Vec<String> = Vec::new();
+        for t in &self.tags {
+            let t = t.trim().trim_start_matches('#').to_lowercase();
+            let t: String = t.chars().take(32).collect();
+            if !t.is_empty() && !tags.contains(&t) {
+                tags.push(t);
+            }
+            if tags.len() == 5 {
+                break;
+            }
+        }
+        (tags, self.difficulty.map(|d| d.clamp(1, 5)))
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

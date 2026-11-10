@@ -2,6 +2,7 @@
 //! with role gating per route group.
 
 pub mod auth;
+pub mod engine;
 pub mod learn;
 pub mod manager;
 pub mod me;
@@ -157,6 +158,7 @@ pub fn router(state: AppState) -> Router<AppState> {
         .merge(auth::private_routes())
         .merge(me::routes())
         .merge(learn::routes())
+        .merge(engine::routes())
         .route_layer(middleware::from_fn_with_state(
             state.clone(),
             roles::require_signed_in,
@@ -184,6 +186,7 @@ pub fn router(state: AppState) -> Router<AppState> {
         .merge(reels::admin_routes())
         .merge(reports::routes())
         .merge(settings::routes())
+        .merge(engine::admin_routes())
         .route_layer(middleware::from_fn_with_state(state, roles::require_admin));
 
     Router::new()

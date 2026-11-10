@@ -6,7 +6,7 @@ use crate::dto::*;
 use crate::error::ApiError;
 use crate::idempotency;
 use crate::routes::{page_params, Json, Path, Query};
-use crate::services::{learn, views};
+use crate::services::{engine, learn, views};
 use crate::state::AppState;
 use axum::body::Bytes;
 use axum::extract::State;
@@ -41,7 +41,7 @@ async fn today(State(state): State<AppState>, auth: AuthUser) -> Result<Json<Dai
 }
 
 /// Shared idempotent-POST wrapper: replay a stored response for the same key + payload.
-async fn idempotent<F, Fut>(
+pub(crate) async fn idempotent<F, Fut>(
     state: &AppState,
     auth: &AuthUser,
     headers: &HeaderMap,
@@ -66,7 +66,7 @@ where
     Ok((status, axum::Json(value)).into_response())
 }
 
-fn parse_body<T: serde::de::DeserializeOwned>(body: &Bytes) -> Result<T, ApiError> {
+pub(crate) fn parse_body<T: serde::de::DeserializeOwned>(body: &Bytes) -> Result<T, ApiError> {
     serde_json::from_slice(body)
         .map_err(|e| ApiError::BadRequest(format!("invalid JSON body: {e}")))
 }
@@ -188,10 +188,33 @@ async fn save(
     Path(reel_id): Path<Uuid>,
 ) -> Result<StatusCode, ApiError> {
     let mut tx = state.db.tenant_tx(auth.tenant_id).await?;
-    if !reels::learner_may_play(tx.conn(), auth.user_id, reel_id).await? {
+    let ctx = learn::load_ctx(&mut tx, auth.user_id).await?;
+    if !reelearn_db::repos::engine::may_play(
+        tx.conn(),
+        auth.user_id,
+        reel_id,
+        ctx.settings.engine.open_catalog,
+    )
+    .await?
+    {
         return Err(ApiError::NotFound("reel not found".into()));
     }
+    let was_saved = learning::is_saved(tx.conn(), auth.user_id, reel_id).await?;
     learning::save_reel(tx.conn(), auth.tenant_id, auth.user_id, reel_id).await?;
+    if !was_saved {
+        let reel = reels::get(tx.conn(), reel_id).await?;
+        engine::apply_signal(
+            &mut tx,
+            &ctx,
+            &reel,
+            reelearn_domain::EngagementKind::Save,
+            None,
+            None,
+            None,
+            reelearn_domain::Channel::App,
+        )
+        .await?;
+    }
     tx.commit().await?;
     state
         .cache
@@ -206,7 +229,24 @@ async fn unsave(
     Path(reel_id): Path<Uuid>,
 ) -> Result<StatusCode, ApiError> {
     let mut tx = state.db.tenant_tx(auth.tenant_id).await?;
+    let ctx = learn::load_ctx(&mut tx, auth.user_id).await?;
+    let was_saved = learning::is_saved(tx.conn(), auth.user_id, reel_id).await?;
     learning::unsave_reel(tx.conn(), auth.user_id, reel_id).await?;
+    if was_saved {
+        if let Some(reel) = reels::find(tx.conn(), reel_id).await? {
+            engine::apply_signal(
+                &mut tx,
+                &ctx,
+                &reel,
+                reelearn_domain::EngagementKind::Unsave,
+                None,
+                None,
+                None,
+                reelearn_domain::Channel::App,
+            )
+            .await?;
+        }
+    }
     tx.commit().await?;
     state
         .cache
@@ -249,7 +289,13 @@ async fn playable(
         .lang
         .unwrap_or_else(|| ctx.user.preferred_language.clone());
     if !ctx.user.role.at_least(reelearn_domain::Role::Admin)
-        && !reels::learner_may_play(tx.conn(), auth.user_id, reel_id).await?
+        && !reelearn_db::repos::engine::may_play(
+            tx.conn(),
+            auth.user_id,
+            reel_id,
+            ctx.settings.engine.open_catalog,
+        )
+        .await?
     {
         return Err(ApiError::NotFound("reel not found".into()));
     }

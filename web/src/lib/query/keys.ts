@@ -18,5 +18,7 @@ export const keys = {
   reports: (kind: string, range: string) => ["reports", kind, range] as const,
   exports: ["exports"] as const,
   integrations: ["integrations"] as const,
+  engine: ["engine"] as const,
+  engineInsights: (range: string) => ["engine-insights", range] as const,
   audit: (params: Record<string, string | undefined>) => ["audit", params] as const,
 };

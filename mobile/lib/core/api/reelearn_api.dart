@@ -129,6 +129,26 @@ abstract class ReelearnApi {
   Future<void> requestReel(String text);
   Future<ReelPlayable> getReel(String reelId, {String? lang});
 
+  // learning engine
+  Future<NextBatch> getNext({String? sessionId, int? limit});
+  Future<void> postEvents(
+    EngagementBatch batch, {
+    required String idempotencyKey,
+  });
+  Future<void> endSession(String sessionId);
+  Future<MyInterests> getMyTopics();
+  Future<MyInterests> setTopicPreference(
+    String topicId,
+    TopicPreference? preference,
+  );
+  Future<MyInterests> setPersonalization({required bool enabled});
+  Future<List<Colleague>> getColleagues({String? query});
+  Future<int> shareReel(
+    String reelId,
+    List<String> recipientIds, {
+    String? note,
+  });
+
   // manager
   Future<TeamReadiness> getTeam();
   Future<NudgeResult> nudge(List<String> userIds);

@@ -41,3 +41,7 @@ All data access goes through the generated client (`src/lib/api`, from `../opena
 ## Not yet verified
 
 - The console has been exercised against the MSW mock API only (`NEXT_PUBLIC_API_MOCK=true`); the live-API run is part of the integration step in the repository status.
+
+## Learning engine (2026-11-09)
+
+- Learning engine page (`/engine`): intensity presets, value-model weights, practice, discovery, learning and reminder settings, and an insights tab; mock handlers; vitest for the settings logic and Playwright for preset, tuning and insights.

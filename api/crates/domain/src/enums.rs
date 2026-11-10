@@ -197,6 +197,14 @@ wire_enum!(PlanItemKind, "plan_item_kind_t", { Reel => "reel", QuestionOnly => "
 
 wire_enum!(PlanItemReason, "plan_item_reason_t", { New => "new", Review => "review" });
 
+wire_enum!(
+    /// A signal from the phone or the ranker. See `engine::signals` for what each one is worth.
+    EngagementKind, "engagement_kind_t", {
+    Impression => "impression", Start => "start", Skip => "skip", Complete => "complete",
+    Rewatch => "rewatch", Save => "save", Unsave => "unsave", Share => "share",
+    NotRelevant => "not_relevant", MoreLikeThis => "more_like_this",
+});
+
 wire_enum!(PlanItemState, "plan_item_state_t", {
     Pending => "pending", Watched => "watched", Answered => "answered",
 });

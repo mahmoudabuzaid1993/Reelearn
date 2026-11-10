@@ -614,6 +614,13 @@ pub async fn seed_demo(state: &AppState) -> Result<SeedOutcome, ApiError> {
     }
 
     seed_sara_history(&mut tx, tid, &sara, &reel_ids, &question_ids, today).await?;
+    seed_engine(
+        &mut tx,
+        tid,
+        &reel_ids,
+        &[sara.id, rizwan.id, mohammad.id, fatimah.id],
+    )
+    .await?;
     seed_daily_topic_stats(
         &mut tx,
         tid,
@@ -802,5 +809,152 @@ async fn seed_daily_topic_stats(
             .await?;
         }
     }
+    Ok(())
+}
+
+/// Tags and difficulty per demo reel (what the studio pipeline writes for generated reels).
+fn seed_features(title: &str) -> (Vec<String>, i16) {
+    let (tags, d): (&[&str], i16) = match title {
+        t if t.starts_with("Say the customer") => (&["customer service", "names", "rapport"], 1),
+        t if t.starts_with("Greet within") => (&["customer service", "greeting", "speed"], 1),
+        t if t.starts_with("Turn 'no'") => (&["customer service", "complaints", "language"], 3),
+        t if t.starts_with("Spill on the floor") => (&["store safety", "spills", "hazards"], 2),
+        t if t.starts_with("Lift with your legs") => (&["store safety", "lifting", "warehouse"], 2),
+        t if t.starts_with("Fire exit") => (&["store safety", "fire", "exits"], 1),
+        t if t.starts_with("Which cash transactions") => (&["aml", "cash", "reporting"], 4),
+        t if t.starts_with("Split payments") => (&["aml", "red flags", "payments"], 4),
+        t if t.starts_with("Returns without") => (&["aml", "returns", "fraud"], 3),
+        t if t.starts_with("Know your customer") => (&["aml", "kyc", "identity"], 3),
+        t if t.starts_with("Ladder safety") => (&["store safety", "ladders", "warehouse"], 2),
+        _ => (&["general"], 3),
+    };
+    (tags.iter().map(|t| t.to_string()).collect(), d)
+}
+
+/// A week of learning-engine history so practice, "Your topics" and the insights page start
+/// with something to show: reel statistics, interest, sessions, events and one colleague share.
+async fn seed_engine(
+    tx: &mut reelearn_db::TenantTx,
+    tid: Uuid,
+    reel_ids: &[Uuid],
+    learners: &[Uuid],
+) -> Result<(), ApiError> {
+    use reelearn_db::repos::engine as eng;
+    let mut published = Vec::new();
+    for (i, id) in reel_ids.iter().enumerate() {
+        let reel = reels::get(tx.conn(), *id).await?;
+        let (tags, difficulty) = seed_features(&reel.title);
+        reels::set_features(tx.conn(), *id, &tags, Some(difficulty)).await?;
+        if reel.status != ReelStatus::Published {
+            continue;
+        }
+        published.push(reel.clone());
+        // Deterministic but varied: some reels are finished more, some skipped more.
+        let n = i as i32;
+        let starts = 40 + 7 * n;
+        sqlx::query(
+            "INSERT INTO reel_engagement_stats (reel_id, tenant_id, impressions, starts, skips, completions, rewatches, saves, shares, not_relevant, answers, answers_correct, watched_ms)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+             ON CONFLICT (reel_id) DO NOTHING",
+        )
+        .bind(*id)
+        .bind(tid)
+        .bind(starts + 12)
+        .bind(starts)
+        .bind(3 + (n * 5) % 11)
+        .bind(starts - 6 - (n * 3) % 9)
+        .bind(n % 4)
+        .bind(2 + n % 5)
+        .bind(n % 3)
+        .bind(n % 2)
+        .bind(starts - 10)
+        .bind(starts - 14 - (n * 2) % 7)
+        .bind(i64::from(starts) * 26_000)
+        .execute(tx.conn())
+        .await
+        .map_err(reelearn_db::DbError::from)?;
+    }
+
+    // Interest: each learner leans toward one topic; Sara follows customer service.
+    for (k, user) in learners.iter().enumerate() {
+        for (j, reel) in published.iter().enumerate() {
+            let delta = if (j + k) % 3 == 0 { 2.5 } else { 0.6 };
+            eng::add_topic_interest(tx.conn(), tid, *user, reel.topic_id, delta, 14.0).await?;
+            let (tags, _) = seed_features(&reel.title);
+            eng::add_tag_interest(tx.conn(), tid, *user, &tags, delta * 0.5, 14.0).await?;
+        }
+    }
+    if let (Some(sara), Some(first)) = (learners.first(), published.first()) {
+        eng::set_preference(
+            tx.conn(),
+            tid,
+            *sara,
+            first.topic_id,
+            Some(reelearn_domain::engine::Preference::Follow),
+        )
+        .await?;
+    }
+
+    // A week of practice sessions and their start/complete events.
+    for day in 1..=7_i32 {
+        for (k, user) in learners.iter().enumerate() {
+            if (day as usize + k).is_multiple_of(3) {
+                continue;
+            }
+            let session: Uuid = sqlx::query_scalar(
+                "INSERT INTO engine_sessions (tenant_id, user_id, started_at, last_active_at, ended_at, items_served, items_completed, active_ms, stop_reason)
+                 VALUES ($1, $2, now() - make_interval(days => $3), now() - make_interval(days => $3) + interval '6 minutes',
+                         now() - make_interval(days => $3) + interval '6 minutes', $4, $5, $6, 'closed') RETURNING id",
+            )
+            .bind(tid)
+            .bind(*user)
+            .bind(day)
+            .bind(6 + (k as i32))
+            .bind(4 + (k as i32) % 3)
+            .bind(i64::from(180_000 + 45_000 * ((day + k as i32) % 5)))
+            .fetch_one(tx.conn())
+            .await
+            .map_err(reelearn_db::DbError::from)?;
+            for (j, reel) in published.iter().enumerate().take(4) {
+                for kind in ["impression", "start", "complete"] {
+                    if kind == "complete" && (j + k + day as usize).is_multiple_of(4) {
+                        continue;
+                    }
+                    sqlx::query(
+                        "INSERT INTO engagement_events (tenant_id, user_id, reel_id, session_id, kind, watched_ms, reason, occurred_at)
+                         VALUES ($1, $2, $3, $4, $5::engagement_kind_t, $6, $7, now() - make_interval(days => $8))",
+                    )
+                    .bind(tid)
+                    .bind(*user)
+                    .bind(reel.id)
+                    .bind(session)
+                    .bind(kind)
+                    .bind(if kind == "complete" { Some(28_000) } else { None })
+                    .bind(if kind == "impression" { Some(["interest", "assigned", "popular", "explore"][j % 4]) } else { None })
+                    .bind(day)
+                    .execute(tx.conn())
+                    .await
+                    .map_err(reelearn_db::DbError::from)?;
+                }
+            }
+        }
+    }
+
+    // Fatimah sent Sara a reel she has not opened yet.
+    if let (Some(sara), Some(fatimah), Some(reel)) =
+        (learners.first(), learners.get(3), published.get(2))
+    {
+        eng::create_share(
+            tx.conn(),
+            tid,
+            reel.id,
+            *fatimah,
+            *sara,
+            Some("Worth a minute before your shift"),
+        )
+        .await?;
+    }
+    eng::refresh_band_stats(tx.conn(), tid).await?;
+    eng::refresh_cohort_stats(tx.conn(), tid).await?;
     Ok(())
 }

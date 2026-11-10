@@ -156,6 +156,9 @@ class PlanItem {
     this.reel,
     this.question,
     this.reviewNote,
+    this.inPlan = true,
+    this.practiceReason,
+    this.reasonDetail,
   });
 
   factory PlanItem.fromJson(Json j) => PlanItem(
@@ -182,6 +185,19 @@ class PlanItem {
   final Question? question;
   final String? reviewNote;
 
+  /// False for practice items (`/me/next`): they are not rows of today's plan,
+  /// so watch and answer events carry no plan item id.
+  final bool inPlan;
+
+  /// Why the engine chose a practice item (shared, interest, popular, ...).
+  final String? practiceReason;
+
+  /// The topic, the colleague's first name or the team for the reason line.
+  final String? reasonDetail;
+
+  /// The id to send as `plan_item_id`, or null for practice items.
+  String? get planItemId => inPlan ? id : null;
+
   /// The question for this item, whichever field the API filled.
   Question? get effectiveQuestion => question ?? reel?.question;
 
@@ -194,6 +210,9 @@ class PlanItem {
         reel: reel ?? this.reel,
         question: question,
         reviewNote: reviewNote,
+        inPlan: inPlan,
+        practiceReason: practiceReason,
+        reasonDetail: reasonDetail,
       );
 
   Json toJson() => {
@@ -302,6 +321,7 @@ class DailyPlan {
     this.greetingName,
     this.estimatedSeconds = 0,
     this.yesterday,
+    this.practiceAvailable = false,
   });
 
   factory DailyPlan.fromJson(Json j) => DailyPlan(
@@ -317,6 +337,7 @@ class DailyPlan {
         yesterday: asJsonOrNull(j, 'yesterday') == null
             ? null
             : Yesterday.fromJson(asJsonOrNull(j, 'yesterday')!),
+        practiceAvailable: asBool(j, 'practice_available'),
       );
 
   final String id;
@@ -327,6 +348,9 @@ class DailyPlan {
   final List<PlanItem> items;
   final UserStats stats;
   final Yesterday? yesterday;
+
+  /// The company offers "keep going" practice after the minute.
+  final bool practiceAvailable;
 
   int get newReels => items
       .where(
@@ -352,6 +376,7 @@ class DailyPlan {
         items: items ?? this.items,
         stats: stats ?? this.stats,
         yesterday: yesterday,
+        practiceAvailable: practiceAvailable,
       );
 
   Json toJson() => {
@@ -363,6 +388,7 @@ class DailyPlan {
         'items': items.map((i) => i.toJson()).toList(),
         'stats': stats.toJson(),
         'yesterday': yesterday?.toJson(),
+        'practice_available': practiceAvailable,
       };
 }
 

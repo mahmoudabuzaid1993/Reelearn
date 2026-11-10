@@ -24,6 +24,8 @@ tags:
   - name: reels
   - name: reports
   - name: settings
+  - name: engine
+    description: The learning engine. Practice batches, signals, topics, sharing, company tuning and insights.
   - name: webhooks
   - name: system
 
@@ -321,6 +323,158 @@ paths:
               properties:
                 text: { type: string, minLength: 3, maxLength: 500 }
       responses: { "201": { description: Created } }
+  /me/next:
+    get:
+      tags: [engine]
+      summary: The next ranked items of a practice session ("keep going" after the minute)
+      description: >
+        Opens a session when `session_id` is absent or ended. Items are ranked by the company's value
+        model (duration-normalised completion, learning value, saves, shares, interest, urgency,
+        freshness, colleague activity, minus skips and "not for me"), with exploration, topic diversity
+        and interleaved reviews. Each served reel is logged as an impression. When the company's caps,
+        work hours or the person's pause close practice, `items` is empty and `budget.stop` says why.
+      parameters:
+        - { name: session_id, in: query, required: false, schema: { type: string, format: uuid } }
+        - { name: limit, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 20 } }
+      responses:
+        "200":
+          description: Batch
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/NextBatch" }
+  /me/events:
+    post:
+      tags: [engine]
+      summary: Engagement signals from the app (start, quick skip, rewatch, not for me, more like this)
+      description: >
+        Completions arrive with `/me/watch`, saves with `/me/saved`, shares with `/me/shares`;
+        impressions are written by the ranker. `active_ms` adds practice time to the session (at most
+        3 minutes per call).
+      parameters: [ { $ref: "#/components/parameters/IdempotencyKey" } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id: { type: [string, "null"], format: uuid }
+                active_ms: { type: [integer, "null"], minimum: 0 }
+                events:
+                  type: array
+                  maxItems: 50
+                  items:
+                    type: object
+                    required: [reel_id, kind]
+                    properties:
+                      reel_id: { type: string, format: uuid }
+                      kind: { type: string, enum: [start, skip, rewatch, not_relevant, more_like_this] }
+                      watched_ms: { type: [integer, "null"], minimum: 0 }
+                      position: { type: [integer, "null"] }
+      responses:
+        "202":
+          description: Recorded
+          content:
+            application/json:
+              schema: { type: object, properties: { recorded: { type: integer } } }
+        "422": { $ref: "#/components/responses/Problem" }
+  /me/sessions/{session_id}/end:
+    post:
+      tags: [engine]
+      summary: Close a practice session
+      parameters:
+        - { name: session_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204": { description: Closed }
+        "404": { $ref: "#/components/responses/Problem" }
+  /me/topics:
+    get:
+      tags: [engine]
+      summary: Your topics - interest per topic and tag, your follow and mute choices
+      responses:
+        "200":
+          description: Topics
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MyInterests" }
+  /me/topics/{topic_id}:
+    put:
+      tags: [engine]
+      summary: Follow, mute or reset a topic (mandatory topics cannot be muted)
+      parameters:
+        - { name: topic_id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [preference]
+              properties:
+                preference: { type: [string, "null"], enum: [follow, mute, null] }
+      responses:
+        "200":
+          description: Topics after the change
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MyInterests" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+  /me/personalization:
+    put:
+      tags: [engine]
+      summary: Turn interest-based ordering on or off for yourself
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled: { type: boolean }
+      responses:
+        "200":
+          description: Topics after the change
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MyInterests" }
+  /me/colleagues:
+    get:
+      tags: [engine]
+      summary: Colleagues to send a reel to, strongest connection first
+      parameters:
+        - { name: q, in: query, required: false, schema: { type: string } }
+      responses:
+        "200":
+          description: Colleagues
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Colleague" } }
+  /me/shares:
+    post:
+      tags: [engine]
+      summary: Send a reel to colleagues (once per colleague, 30 a day, only to people who may see it)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reel_id, recipient_ids]
+              properties:
+                reel_id: { type: string, format: uuid }
+                recipient_ids: { type: array, minItems: 1, maxItems: 10, items: { type: string, format: uuid } }
+                note: { type: [string, "null"], maxLength: 280 }
+      responses:
+        "201":
+          description: Sent
+          content:
+            application/json:
+              schema: { type: object, required: [sent], properties: { sent: { type: integer } } }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "429": { $ref: "#/components/responses/Problem" }
   /reels/{reel_id}:
     get:
       tags: [learn]
@@ -990,6 +1144,43 @@ paths:
       parameters: [ { name: kind, in: path, required: true, schema: { $ref: "#/components/schemas/IntegrationKind" } } ]
       responses:
         "200": { description: Result, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, message: { type: string } } } } } }
+  /admin/engine:
+    get:
+      tags: [engine]
+      summary: The company's learning-engine settings and the four presets
+      responses:
+        "200":
+          description: Settings
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EngineConfig" }
+    put:
+      tags: [engine]
+      summary: Switch preset ({"intensity":"maximum"}) or change fields (merged; re-labelled custom)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EngineSettingsPatch" }
+      responses:
+        "200":
+          description: Settings after the change
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EngineConfig" }
+        "422": { $ref: "#/components/responses/Problem" }
+  /admin/engine/insights:
+    get:
+      tags: [engine]
+      summary: Practice, interest, sharing and reel performance for the company
+      parameters:
+        - { name: range, in: query, required: false, schema: { type: string, enum: [7d, 30d, 90d, 12m] } }
+      responses:
+        "200":
+          description: Insights
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EngineInsights" }
   /admin/audit:
     get:
       tags: [settings]
@@ -1045,6 +1236,187 @@ components:
         application/problem+json:
           schema: { $ref: "#/components/schemas/Problem" }
   schemas:
+    Weights:
+      type: object
+      description: Value-model weights, each 0 to 5 (the two penalties 1 to 5)
+      properties:
+        completion: { type: number }
+        learning: { type: number }
+        save: { type: number }
+        share: { type: number }
+        interest: { type: number }
+        urgency: { type: number }
+        freshness: { type: number }
+        social: { type: number }
+        skip_penalty: { type: number, minimum: 1, maximum: 5 }
+        not_relevant_penalty: { type: number, minimum: 1, maximum: 5 }
+        repeat_penalty: { type: number }
+    EngineSettings:
+      type: object
+      required: [intensity, weights, exploration_rate, interest_half_life_days, max_same_topic_in_row, review_every, target_correct_rate, open_catalog, social_proof, peer_sharing, continuous_enabled, daily_minutes_cap, session_minutes_cap, break_reminder_minutes, practice_outside_work_hours, max_nudges_per_day, reengage_after_hours, autoplay_next, batch_size]
+      properties:
+        intensity: { type: string, enum: [gentle, balanced, intense, maximum, custom] }
+        weights: { $ref: "#/components/schemas/Weights" }
+        exploration_rate: { type: number, minimum: 0, maximum: 0.5 }
+        interest_half_life_days: { type: number, minimum: 1, maximum: 90 }
+        max_same_topic_in_row: { type: integer, minimum: 1, maximum: 5 }
+        review_every: { type: integer, minimum: 0, maximum: 10 }
+        target_correct_rate: { type: number, minimum: 0.5, maximum: 0.95 }
+        open_catalog: { type: boolean }
+        social_proof: { type: boolean }
+        peer_sharing: { type: boolean }
+        continuous_enabled: { type: boolean }
+        daily_minutes_cap: { type: integer, minimum: 0, maximum: 240, description: "0 = no cap" }
+        session_minutes_cap: { type: integer, minimum: 0, maximum: 240, description: "0 = no cap" }
+        break_reminder_minutes: { type: integer, minimum: 0, maximum: 120, description: "0 = never" }
+        practice_outside_work_hours: { type: boolean }
+        max_nudges_per_day: { type: integer, minimum: 0, maximum: 6 }
+        reengage_after_hours: { type: integer, minimum: 0, maximum: 72, description: "0 = never" }
+        autoplay_next: { type: boolean }
+        batch_size: { type: integer, minimum: 3, maximum: 20 }
+    EngineSettingsPatch:
+      type: object
+      description: Any subset of EngineSettings; `intensity` alone switches preset
+      additionalProperties: true
+      properties:
+        intensity: { type: string, enum: [gentle, balanced, intense, maximum, custom] }
+        weights: { $ref: "#/components/schemas/Weights" }
+    EngineConfig:
+      type: object
+      required: [settings, presets]
+      properties:
+        settings: { $ref: "#/components/schemas/EngineSettings" }
+        presets:
+          type: object
+          additionalProperties: { $ref: "#/components/schemas/EngineSettings" }
+    PracticeBudget:
+      type: object
+      required: [open]
+      properties:
+        open: { type: boolean }
+        stop: { type: [string, "null"], enum: [disabled, daily_cap, session_cap, outside_work_hours, paused, exhausted, null] }
+        remaining_today_s: { type: [integer, "null"] }
+        remaining_session_s: { type: [integer, "null"] }
+        break_every_s: { type: [integer, "null"] }
+    NextItem:
+      type: object
+      required: [id, position, kind, reason]
+      properties:
+        id: { type: string, format: uuid }
+        position: { type: integer }
+        kind: { type: string, enum: [reel, question_only] }
+        reason: { type: string, enum: [shared, mandatory, followed, interest, popular, new, explore, assigned, catalog, review] }
+        reason_detail: { type: [string, "null"], description: "Topic name, colleague's first name or cohort" }
+        reel: { oneOf: [ { $ref: "#/components/schemas/ReelPlayable" }, { type: "null" } ] }
+        question: { oneOf: [ { $ref: "#/components/schemas/Question" }, { type: "null" } ] }
+        review_note: { type: [string, "null"] }
+    NextBatch:
+      type: object
+      required: [session_id, items, budget, autoplay_next, peer_sharing]
+      properties:
+        session_id: { type: string, format: uuid }
+        items: { type: array, items: { $ref: "#/components/schemas/NextItem" } }
+        budget: { $ref: "#/components/schemas/PracticeBudget" }
+        autoplay_next: { type: boolean }
+        peer_sharing: { type: boolean }
+    MyInterests:
+      type: object
+      required: [personalized, topics, top_tags]
+      properties:
+        personalized: { type: boolean }
+        topics:
+          type: array
+          items:
+            type: object
+            required: [topic_id, name, is_mandatory, assigned, interest, published_reels]
+            properties:
+              topic_id: { type: string, format: uuid }
+              name: { type: string }
+              is_mandatory: { type: boolean }
+              assigned: { type: boolean }
+              preference: { type: [string, "null"], enum: [follow, mute, null] }
+              interest: { type: integer, minimum: 0, maximum: 100 }
+              published_reels: { type: integer }
+        top_tags:
+          type: array
+          items: { type: object, required: [tag, interest], properties: { tag: { type: string }, interest: { type: integer } } }
+    Colleague:
+      type: object
+      required: [id, full_name]
+      properties:
+        id: { type: string, format: uuid }
+        full_name: { type: string }
+        job_title: { type: [string, "null"] }
+        location: { type: [string, "null"] }
+    EngineInsights:
+      type: object
+      required: [range, intensity, sessions, learners_practising, practice_minutes, avg_session_minutes, avg_minutes_per_learner, items_per_session, completion_rate, skip_rate, saves, not_relevant, sharing, daily, topics, tags, cohorts, bands, reasons, reels]
+      properties:
+        range: { type: string }
+        intensity: { type: string }
+        sessions: { type: integer }
+        learners_practising: { type: integer }
+        practice_minutes: { type: number }
+        avg_session_minutes: { type: number }
+        avg_minutes_per_learner: { type: number }
+        items_per_session: { type: number }
+        completion_rate: { type: number }
+        skip_rate: { type: number }
+        saves: { type: integer }
+        not_relevant: { type: integer }
+        sharing:
+          type: object
+          required: [shares, senders, recipients, opened_rate]
+          properties: { shares: { type: integer }, senders: { type: integer }, recipients: { type: integer }, opened_rate: { type: number } }
+        daily:
+          type: array
+          items:
+            type: object
+            required: [day, sessions, practice_minutes, starts, completions]
+            properties: { day: { type: string, format: date }, sessions: { type: integer }, practice_minutes: { type: number }, starts: { type: integer }, completions: { type: integer } }
+        topics:
+          type: array
+          items:
+            type: object
+            required: [topic_id, name, interested, followers, muted, avg_interest]
+            properties: { topic_id: { type: string, format: uuid }, name: { type: string }, interested: { type: integer }, followers: { type: integer }, muted: { type: integer }, avg_interest: { type: number } }
+        tags:
+          type: array
+          items: { type: object, required: [tag, interested, avg_interest], properties: { tag: { type: string }, interested: { type: integer }, avg_interest: { type: number } } }
+        cohorts:
+          type: array
+          description: Locations with at least 3 people practising
+          items:
+            type: object
+            required: [location, learners, sessions, practice_minutes]
+            properties: { location: { type: string }, learners: { type: integer }, sessions: { type: integer }, practice_minutes: { type: number } }
+        bands:
+          type: array
+          items:
+            type: object
+            required: [band, label, starts, completion_rate, skip_rate]
+            properties: { band: { type: integer }, label: { type: string }, starts: { type: integer }, completion_rate: { type: number }, skip_rate: { type: number } }
+        reasons:
+          type: array
+          items: { type: object, required: [reason, impressions], properties: { reason: { type: string }, impressions: { type: integer } } }
+        reels:
+          type: array
+          items:
+            type: object
+            required: [reel_id, title, topic_name, duration_ms, impressions, starts, completion_rate, skip_rate, saves, shares, not_relevant]
+            properties:
+              reel_id: { type: string, format: uuid }
+              title: { type: string }
+              topic_name: { type: string }
+              duration_ms: { type: integer }
+              impressions: { type: integer }
+              starts: { type: integer }
+              completion_rate: { type: number }
+              skip_rate: { type: number }
+              saves: { type: integer }
+              shares: { type: integer }
+              not_relevant: { type: integer }
+              correct_rate: { type: [number, "null"] }
     Problem:
       type: object
       required: [type, title, status]
@@ -1491,6 +1863,7 @@ components:
               review_note: { type: [string, "null"], description: "e.g. 'Asked again · day 10'" }
         stats: { $ref: "#/components/schemas/UserStats" }
         yesterday: { type: [object, "null"], properties: { remembered: { type: integer }, total: { type: integer }, next_review_on: { type: [string, "null"], format: date } } }
+        practice_available: { type: boolean, description: "The company offers practice after the minute and the person is not paused" }
     AnswerOutcome:
       type: object
       required: [is_correct, correct_key, explanation, next_due_on, plan_status]

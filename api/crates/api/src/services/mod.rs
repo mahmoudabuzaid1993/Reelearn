@@ -1,5 +1,6 @@
 //! Application services: orchestration between repositories, domain rules and caches.
 
+pub mod engine;
 pub mod learn;
 pub mod media;
 pub mod otp;

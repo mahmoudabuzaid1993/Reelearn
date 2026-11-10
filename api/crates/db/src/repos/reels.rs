@@ -696,3 +696,19 @@ pub async fn backdate_published(
         .await?;
     Ok(())
 }
+
+/// Tags and difficulty from the studio pipeline (read by the learning engine).
+pub async fn set_features(
+    conn: &mut PgConnection,
+    id: Uuid,
+    tags: &[String],
+    difficulty: Option<i16>,
+) -> Result<(), DbError> {
+    sqlx::query("UPDATE reels SET tags = $2, difficulty = $3 WHERE id = $1")
+        .bind(id)
+        .bind(tags)
+        .bind(difficulty)
+        .execute(conn)
+        .await?;
+    Ok(())
+}

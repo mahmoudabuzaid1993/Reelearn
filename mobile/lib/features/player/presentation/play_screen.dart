@@ -6,9 +6,11 @@ import '../../../app/l10n/gen/app_localizations.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../app/widgets.dart';
+import '../../../core/api/models/models.dart';
 import '../../../core/auth/session.dart';
 import '../../../core/errors/app_error.dart';
 import '../../../core/providers.dart';
+import '../../practice/presentation/share_sheet.dart';
 import '../../today/data/today_repository.dart';
 import '../data/telemetry.dart';
 import '../domain/stack_model.dart';
@@ -98,7 +100,7 @@ class PlayScreen extends ConsumerWidget {
             onArrive: (card, _) {
               if (card is ReelStackCard) {
                 telemetry.recordWatch(
-                  planItemId: card.item.id,
+                  planItemId: card.item.planItemId,
                   reelId: card.reel.id,
                   watchedMs: 0,
                   completed: false,
@@ -106,14 +108,14 @@ class PlayScreen extends ConsumerWidget {
               }
             },
             onWatched: (card, ms) => telemetry.recordWatch(
-              planItemId: card.item.id,
+              planItemId: card.item.planItemId,
               reelId: card.reel.id,
               watchedMs: ms,
               completed: true,
             ),
             onPick: (card, key) async {
               final outcome = await telemetry.answer(
-                planItemId: card.item.id,
+                planItemId: card.item.planItemId,
                 questionId: card.question.id,
                 chosenKey: key,
               );
@@ -143,6 +145,35 @@ class PlayScreen extends ConsumerWidget {
                 return wasSaved;
               }
             },
+            onLeave: (card, ms) {
+              if (ms < skipThresholdMs) {
+                telemetry.signals(
+                  events: [
+                    EngagementSignal(
+                      reelId: card.reel.id,
+                      kind: EngagementKind.skip,
+                      watchedMs: ms,
+                    ),
+                  ],
+                );
+              }
+            },
+            onRewatch: (card) => telemetry.signals(
+              events: [
+                EngagementSignal(
+                  reelId: card.reel.id,
+                  kind: EngagementKind.rewatch,
+                  watchedMs: card.reel.durationMs,
+                ),
+              ],
+            ),
+            onShare: (card) => showShareSheet(context, ref, card.reel),
+            onKeepGoing: p.practiceAvailable
+                ? () {
+                    ref.invalidate(todayProvider);
+                    context.go(Routes.practice);
+                  }
+                : null,
             onClose: () {
               ref.invalidate(todayProvider);
               final onDone =

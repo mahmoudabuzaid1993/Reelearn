@@ -12,6 +12,7 @@ class DoneSummary extends StatelessWidget {
     required this.stats,
     required this.onBackToWork,
     required this.onOpenSaved,
+    this.onKeepGoing,
     super.key,
   });
 
@@ -20,6 +21,9 @@ class DoneSummary extends StatelessWidget {
   final UserStats stats;
   final VoidCallback onBackToWork;
   final VoidCallback onOpenSaved;
+
+  /// Practice after the minute, when the company offers it.
+  final VoidCallback? onKeepGoing;
 
   @override
   Widget build(BuildContext context) {
@@ -62,10 +66,24 @@ class DoneSummary extends StatelessWidget {
                 style: text.bodyMedium?.copyWith(color: Brand.slate),
               ),
               const Spacer(),
-              Text(
-                l.nothingMore,
-                style: text.bodyMedium?.copyWith(color: Brand.slate),
-              ),
+              if (onKeepGoing == null)
+                Text(
+                  l.nothingMore,
+                  style: text.bodyMedium?.copyWith(color: Brand.slate),
+                )
+              else ...[
+                Text(
+                  l.keepGoingHint,
+                  style: text.bodyMedium?.copyWith(color: Brand.slate),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  key: const Key('keep-going'),
+                  onPressed: onKeepGoing,
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  label: Text(l.keepGoing),
+                ),
+              ],
               const SizedBox(height: 16),
               FilledButton(
                 key: const Key('back-to-work'),

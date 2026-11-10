@@ -60,6 +60,43 @@ class DoneStackCard extends StackCard {
   int? get unitIndex => null;
 }
 
+/// A pause suggestion inside practice, after the company's break interval.
+class BreakStackCard extends StackCard {
+  const BreakStackCard(this.n);
+
+  final int n;
+
+  @override
+  String get key => 'break:$n';
+
+  @override
+  int? get unitIndex => null;
+}
+
+/// Shown at the end of the loaded practice cards while the next batch loads.
+class LoadingStackCard extends StackCard {
+  const LoadingStackCard();
+
+  @override
+  String get key => 'loading';
+
+  @override
+  int? get unitIndex => null;
+}
+
+/// The end of practice: a cap, work hours, a pause, or nothing left to show.
+class PracticeEndStackCard extends StackCard {
+  const PracticeEndStackCard(this.stop);
+
+  final PracticeStop? stop;
+
+  @override
+  String get key => 'practice-end';
+
+  @override
+  int? get unitIndex => null;
+}
+
 /// What the learner picked on a question card and what the API said.
 class StackAnswer {
   const StackAnswer({
@@ -88,10 +125,17 @@ enum SegmentState { upcoming, active, answered, remembered }
 
 /// Builds the card list for a plan. Always ends with the done card.
 List<StackCard> buildStackCards(List<PlanItem> items) {
+  final cards = contentCards(items)..add(const DoneStackCard());
+  return List.unmodifiable(cards);
+}
+
+/// Reel and question cards for items, units numbered from [firstUnit].
+/// Practice appends batches with this, then its own trailing card.
+List<StackCard> contentCards(List<PlanItem> items, {int firstUnit = 0}) {
   final sorted = List<PlanItem>.of(items)
     ..sort((a, b) => a.position.compareTo(b.position));
   final cards = <StackCard>[];
-  var unit = 0;
+  var unit = firstUnit;
   for (final item in sorted) {
     switch (item.kind) {
       case PlanItemKind.reel:
@@ -132,8 +176,18 @@ List<StackCard> buildStackCards(List<PlanItem> items) {
         unit++;
     }
   }
-  cards.add(const DoneStackCard());
-  return List.unmodifiable(cards);
+  return cards;
+}
+
+/// The index of the first card after [index] that belongs to another unit
+/// (used by "not for me" to skip a reel and its question), or null.
+int? nextUnitStart(List<StackCard> cards, int index) {
+  if (index < 0 || index >= cards.length) return null;
+  final unit = cards[index].unitIndex;
+  for (var j = index + 1; j < cards.length; j++) {
+    if (unit == null || cards[j].unitIndex != unit) return j;
+  }
+  return null;
 }
 
 int unitCount(List<StackCard> cards) {

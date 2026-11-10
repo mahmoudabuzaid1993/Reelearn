@@ -38,6 +38,11 @@ pub async fn ensure_plan(
     if !user.is_paused_on(day) {
         let due = learning::due_reviews(&mut *conn, user.id, day).await?;
         let candidates = reels::unseen_candidates(&mut *conn, user.id, day).await?;
+        let mut ids: Vec<Uuid> = candidates.iter().map(|c| c.reel_id).collect();
+        ids.sort();
+        ids.dedup();
+        let scores =
+            crate::engine::plan_scores(&mut *conn, user, &settings.engine, day, &ids).await?;
 
         let mut input = PlanInput {
             today: day,
@@ -72,6 +77,7 @@ pub async fn ensure_plan(
                 assignment_channel: c.channel,
                 is_mandatory: c.is_mandatory,
                 published_at: c.published_at,
+                score: scores.get(&c.reel_id).copied().unwrap_or(0.0),
             });
         }
         specs = build_plan(&input);

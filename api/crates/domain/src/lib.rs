@@ -4,6 +4,7 @@
 //! these types, the `api` crate maps them to HTTP, the `worker` runs them in jobs.
 
 pub mod cursor;
+pub mod engine;
 pub mod enums;
 pub mod ids;
 pub mod phone;

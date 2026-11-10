@@ -25,7 +25,7 @@ pub struct DueReview {
 }
 
 /// A published, unseen reel reachable through one of the learner's assignments.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct NewReelCandidate {
     pub reel_id: Uuid,
     /// The question in the learner's language (or the master language as a fallback).
@@ -36,9 +36,11 @@ pub struct NewReelCandidate {
     pub assignment_channel: Channel,
     pub is_mandatory: bool,
     pub published_at: chrono::DateTime<chrono::Utc>,
+    /// The learning engine's value-model score; higher is chosen first after mandatory reels.
+    pub score: f32,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PlanInput {
     pub today: NaiveDate,
     pub max_reviews_per_day: usize,
@@ -101,6 +103,11 @@ pub fn build_plan(input: &PlanInput) -> Vec<PlanItemSpec> {
     candidates.sort_by(|a, b| {
         b.is_mandatory
             .cmp(&a.is_mandatory)
+            .then(
+                b.score
+                    .partial_cmp(&a.score)
+                    .unwrap_or(std::cmp::Ordering::Equal),
+            )
             .then(a.published_at.cmp(&b.published_at))
             .then(a.reel_id.cmp(&b.reel_id))
     });
@@ -165,6 +172,7 @@ mod tests {
                 .with_ymd_and_hms(2026, 10, published_day, 8, 0, 0)
                 .single()
                 .expect("ts"),
+            score: 0.0,
         }
     }
 
@@ -292,5 +300,29 @@ mod tests {
         let b = build_plan(&input);
         assert_eq!(a, b);
         assert_eq!(estimated_seconds(&a), 60);
+    }
+
+    #[test]
+    fn the_engine_score_orders_new_reels_after_mandatory_ones() {
+        let mut input = base_input();
+        input.reels_per_day = 3;
+        let mut low = cand(101, 1, 5, false, 1);
+        low.score = 0.2;
+        let mut high = cand(102, 1, 5, false, 9);
+        high.score = 2.5;
+        let mandatory = cand(301, 3, 5, true, 5);
+        input.candidates = vec![low, high, mandatory];
+        let reels: Vec<Uuid> = build_plan(&input)
+            .iter()
+            .filter_map(|i| i.reel_id)
+            .collect();
+        assert_eq!(
+            reels,
+            vec![
+                Uuid::from_u128(301),
+                Uuid::from_u128(102),
+                Uuid::from_u128(101)
+            ]
+        );
     }
 }

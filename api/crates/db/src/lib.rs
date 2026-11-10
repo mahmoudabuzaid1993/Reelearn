@@ -6,7 +6,9 @@
 //!   row-level-security policies isolate the tenant even if a query forgets `WHERE tenant_id`.
 //! - `repos::*` hold the only SQL in the workspace, one module per aggregate.
 //! - [`plans`] materialises the daily plan (the orchestration shared by API and worker).
+//! - [`engine`] loads what the learning engine ranks: candidates, interest, baselines.
 
+pub mod engine;
 pub mod error;
 pub mod plans;
 pub mod pool;

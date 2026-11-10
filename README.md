@@ -4,6 +4,10 @@ A minute a day. Remembered for months.
 
 Reelearn is a B2B platform that feeds employees short vertical learning reels on the topics their employer chooses, asks one recall question per reel, and re-asks it on a spaced schedule so the knowledge sticks. Saudi-first: Arabic and expat languages, shift-aware delivery, prayer and Ramadan aware, data kept in-Kingdom, HRDF evidence exports.
 
+## Learning engine
+
+Which reel comes next is decided by a ranking engine modelled on short-video recommenders, with a value model that also rewards learning. Each company sets its intensity from Gentle to Maximum in the console under **Learning engine**. Design and guardrails: [docs/engine.md](docs/engine.md); the research behind it: [docs/research/short-video-recommenders.md](docs/research/short-video-recommenders.md).
+
 ## Repository layout (three tiers + mobile)
 
 ```

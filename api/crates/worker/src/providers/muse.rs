@@ -83,8 +83,11 @@ pub fn reels_schema() -> serde_json::Value {
     obj(
         serde_json::json!({
             "reels": arr(obj(
-                serde_json::json!({ "title": s(), "script": s(), "caption_line": s(), "source_citation": s() }),
-                &["title", "script", "caption_line", "source_citation"]
+                serde_json::json!({
+                    "title": s(), "script": s(), "caption_line": s(), "source_citation": s(),
+                    "tags": arr(s()), "difficulty": { "type": "integer" }
+                }),
+                &["title", "script", "caption_line", "source_citation", "tags", "difficulty"]
             ))
         }),
         &["reels"],
@@ -271,7 +274,7 @@ impl ScriptWriter for MuseWriter {
 
     async fn write_reels(&self, input: ScriptInput) -> Result<Vec<ReelScript>, ProviderError> {
         let prompt = format!(
-            "Topic: {}\nLanguage: {}\nPresenter name: {}\nSource title: {}\nBrief: {}\nKey ideas:\n{}\n\nSource text:\n{}\n\nWrite exactly {} reels. Each script is 45-60 seconds spoken, first person, with one concrete workplace moment. caption_line is at most 70 characters.",
+            "Topic: {}\nLanguage: {}\nPresenter name: {}\nSource title: {}\nBrief: {}\nKey ideas:\n{}\n\nSource text:\n{}\n\nWrite exactly {} reels. Each script is 45-60 seconds spoken, first person, with one concrete workplace moment. caption_line is at most 70 characters. tags are 2-5 short lowercase subject tags (for example \"cold chain\", \"customer greeting\"). difficulty is 1 (anyone gets it) to 5 (needs careful thought).",
             input.topic_name,
             input.language,
             input.presenter_name,

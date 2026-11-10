@@ -738,6 +738,358 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/next": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The next ranked items of a practice session ("keep going" after the minute)
+         * @description Opens a session when `session_id` is absent or ended. Items are ranked by the company's value model (duration-normalised completion, learning value, saves, shares, interest, urgency, freshness, colleague activity, minus skips and "not for me"), with exploration, topic diversity and interleaved reviews. Each served reel is logged as an impression. When the company's caps, work hours or the person's pause close practice, `items` is empty and `budget.stop` says why.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    session_id?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Batch */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NextBatch"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Engagement signals from the app (start, quick skip, rewatch, not for me, more like this)
+         * @description Completions arrive with `/me/watch`, saves with `/me/saved`, shares with `/me/shares`; impressions are written by the ranker. `active_ms` adds practice time to the session (at most 3 minutes per call).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    "Idempotency-Key"?: components["parameters"]["IdempotencyKey"];
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        session_id?: string | null;
+                        active_ms?: number | null;
+                        events?: {
+                            /** Format: uuid */
+                            reel_id: string;
+                            /** @enum {string} */
+                            kind: "start" | "skip" | "rewatch" | "not_relevant" | "more_like_this";
+                            watched_ms?: number | null;
+                            position?: number | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Recorded */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            recorded?: number;
+                        };
+                    };
+                };
+                422: components["responses"]["Problem"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/sessions/{session_id}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close a practice session */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    session_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Closed */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["Problem"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your topics - interest per topic and tag, your follow and mute choices */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Topics */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MyInterests"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/topics/{topic_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Follow, mute or reset a topic (mandatory topics cannot be muted) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    topic_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string|null} */
+                        preference: "follow" | "mute" | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Topics after the change */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MyInterests"];
+                    };
+                };
+                404: components["responses"]["Problem"];
+                422: components["responses"]["Problem"];
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/personalization": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Turn interest-based ordering on or off for yourself */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        enabled: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Topics after the change */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MyInterests"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/colleagues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Colleagues to send a reel to, strongest connection first */
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Colleagues */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Colleague"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a reel to colleagues (once per colleague, 30 a day, only to people who may see it) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        reel_id: string;
+                        recipient_ids: string[];
+                        note?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Sent */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sent: number;
+                        };
+                    };
+                };
+                403: components["responses"]["Problem"];
+                404: components["responses"]["Problem"];
+                429: components["responses"]["Problem"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/reels/{reel_id}": {
         parameters: {
             query?: never;
@@ -2798,6 +3150,105 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/engine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The company's learning-engine settings and the four presets */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Settings */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EngineConfig"];
+                    };
+                };
+            };
+        };
+        /** Switch preset ({"intensity":"maximum"}) or change fields (merged; re-labelled custom) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["EngineSettingsPatch"];
+                };
+            };
+            responses: {
+                /** @description Settings after the change */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EngineConfig"];
+                    };
+                };
+                422: components["responses"]["Problem"];
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/engine/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Practice, interest, sharing and reel performance for the company */
+        get: {
+            parameters: {
+                query?: {
+                    range?: "7d" | "30d" | "90d" | "12m";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Insights */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EngineInsights"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/audit": {
         parameters: {
             query?: never;
@@ -2914,6 +3365,190 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Value-model weights, each 0 to 5 (the two penalties 1 to 5) */
+        Weights: {
+            completion?: number;
+            learning?: number;
+            save?: number;
+            share?: number;
+            interest?: number;
+            urgency?: number;
+            freshness?: number;
+            social?: number;
+            skip_penalty?: number;
+            not_relevant_penalty?: number;
+            repeat_penalty?: number;
+        };
+        EngineSettings: {
+            /** @enum {string} */
+            intensity: "gentle" | "balanced" | "intense" | "maximum" | "custom";
+            weights: components["schemas"]["Weights"];
+            exploration_rate: number;
+            interest_half_life_days: number;
+            max_same_topic_in_row: number;
+            review_every: number;
+            target_correct_rate: number;
+            open_catalog: boolean;
+            social_proof: boolean;
+            peer_sharing: boolean;
+            continuous_enabled: boolean;
+            /** @description 0 = no cap */
+            daily_minutes_cap: number;
+            /** @description 0 = no cap */
+            session_minutes_cap: number;
+            /** @description 0 = never */
+            break_reminder_minutes: number;
+            practice_outside_work_hours: boolean;
+            max_nudges_per_day: number;
+            /** @description 0 = never */
+            reengage_after_hours: number;
+            autoplay_next: boolean;
+            batch_size: number;
+        };
+        /** @description Any subset of EngineSettings; `intensity` alone switches preset */
+        EngineSettingsPatch: {
+            /** @enum {string} */
+            intensity?: "gentle" | "balanced" | "intense" | "maximum" | "custom";
+            weights?: components["schemas"]["Weights"];
+        } & {
+            [key: string]: unknown;
+        };
+        EngineConfig: {
+            settings: components["schemas"]["EngineSettings"];
+            presets: {
+                [key: string]: components["schemas"]["EngineSettings"];
+            };
+        };
+        PracticeBudget: {
+            open: boolean;
+            /** @enum {string|null} */
+            stop?: "disabled" | "daily_cap" | "session_cap" | "outside_work_hours" | "paused" | "exhausted" | null;
+            remaining_today_s?: number | null;
+            remaining_session_s?: number | null;
+            break_every_s?: number | null;
+        };
+        NextItem: {
+            /** Format: uuid */
+            id: string;
+            position: number;
+            /** @enum {string} */
+            kind: "reel" | "question_only";
+            /** @enum {string} */
+            reason: "shared" | "mandatory" | "followed" | "interest" | "popular" | "new" | "explore" | "assigned" | "catalog" | "review";
+            /** @description Topic name, colleague's first name or cohort */
+            reason_detail?: string | null;
+            reel?: components["schemas"]["ReelPlayable"] | null;
+            question?: components["schemas"]["Question"] | null;
+            review_note?: string | null;
+        };
+        NextBatch: {
+            /** Format: uuid */
+            session_id: string;
+            items: components["schemas"]["NextItem"][];
+            budget: components["schemas"]["PracticeBudget"];
+            autoplay_next: boolean;
+            peer_sharing: boolean;
+        };
+        MyInterests: {
+            personalized: boolean;
+            topics: {
+                /** Format: uuid */
+                topic_id: string;
+                name: string;
+                is_mandatory: boolean;
+                assigned: boolean;
+                /** @enum {string|null} */
+                preference?: "follow" | "mute" | null;
+                interest: number;
+                published_reels: number;
+            }[];
+            top_tags: {
+                tag: string;
+                interest: number;
+            }[];
+        };
+        Colleague: {
+            /** Format: uuid */
+            id: string;
+            full_name: string;
+            job_title?: string | null;
+            location?: string | null;
+        };
+        EngineInsights: {
+            range: string;
+            intensity: string;
+            sessions: number;
+            learners_practising: number;
+            practice_minutes: number;
+            avg_session_minutes: number;
+            avg_minutes_per_learner: number;
+            items_per_session: number;
+            completion_rate: number;
+            skip_rate: number;
+            saves: number;
+            not_relevant: number;
+            sharing: {
+                shares: number;
+                senders: number;
+                recipients: number;
+                opened_rate: number;
+            };
+            daily: {
+                /** Format: date */
+                day: string;
+                sessions: number;
+                practice_minutes: number;
+                starts: number;
+                completions: number;
+            }[];
+            topics: {
+                /** Format: uuid */
+                topic_id: string;
+                name: string;
+                interested: number;
+                followers: number;
+                muted: number;
+                avg_interest: number;
+            }[];
+            tags: {
+                tag: string;
+                interested: number;
+                avg_interest: number;
+            }[];
+            /** @description Locations with at least 3 people practising */
+            cohorts: {
+                location: string;
+                learners: number;
+                sessions: number;
+                practice_minutes: number;
+            }[];
+            bands: {
+                band: number;
+                label: string;
+                starts: number;
+                completion_rate: number;
+                skip_rate: number;
+            }[];
+            reasons: {
+                reason: string;
+                impressions: number;
+            }[];
+            reels: {
+                /** Format: uuid */
+                reel_id: string;
+                title: string;
+                topic_name: string;
+                duration_ms: number;
+                impressions: number;
+                starts: number;
+                completion_rate: number;
+                skip_rate: number;
+                saves: number;
+                shares: number;
+                not_relevant: number;
+                correct_rate?: number | null;
+            }[];
+        };
         Problem: {
             type: string;
             title: string;
@@ -3435,6 +4070,8 @@ export interface components {
                 /** Format: date */
                 next_review_on?: string | null;
             } | null;
+            /** @description The company offers practice after the minute and the person is not paused */
+            practice_available?: boolean;
         };
         AnswerOutcome: {
             is_correct: boolean;

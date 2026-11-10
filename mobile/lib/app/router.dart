@@ -6,6 +6,7 @@ import '../core/auth/session.dart';
 import '../features/auth/presentation/signin_screen.dart';
 import '../features/auth/presentation/welcome_screen.dart';
 import '../features/player/presentation/play_screen.dart';
+import '../features/practice/presentation/practice_screen.dart';
 import '../features/progress/presentation/progress_screen.dart';
 import '../features/record/presentation/record_screen.dart';
 import '../features/saved/presentation/saved_screen.dart';
@@ -13,6 +14,7 @@ import '../features/settings/presentation/settings_screen.dart';
 import '../features/team/presentation/team_screen.dart';
 import '../features/today/presentation/done_screen.dart';
 import '../features/today/presentation/today_screen.dart';
+import '../features/topics/presentation/my_topics_screen.dart';
 import 'shell.dart';
 
 abstract final class Routes {
@@ -22,6 +24,8 @@ abstract final class Routes {
   static const today = '/today';
   static const play = '/today/play';
   static const done = '/today/done';
+  static const practice = '/today/practice';
+  static const topics = '/settings/topics';
   static const saved = '/saved';
   static const progress = '/progress';
   static const settings = '/settings';
@@ -96,6 +100,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.welcome, builder: (_, __) => const WelcomeScreen()),
       GoRoute(path: Routes.play, builder: (_, __) => const PlayScreen()),
       GoRoute(path: Routes.done, builder: (_, __) => const DoneScreen()),
+      GoRoute(
+        path: Routes.practice,
+        builder: (_, __) => const PracticeScreen(),
+      ),
+      GoRoute(
+        path: Routes.topics,
+        builder: (_, __) => const MyTopicsScreen(),
+      ),
       GoRoute(path: Routes.record, builder: (_, __) => const RecordScreen()),
       ShellRoute(
         builder: (_, __, child) => AppShell(child: child),

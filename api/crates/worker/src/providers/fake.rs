@@ -127,6 +127,8 @@ impl ScriptWriter for FakeWriter {
                     ),
                     caption_line: title_case(&idea).chars().take(70).collect(),
                     source_citation: input.source_title.clone(),
+                    tags: fake_tags(&input.topic_name, &idea),
+                    difficulty: Some(i16::try_from(2 + i % 3).unwrap_or(3)),
                 }
             })
             .collect())
@@ -339,4 +341,28 @@ impl WhatsAppSender for FakeWhatsApp {
     ) -> Result<String, ProviderError> {
         self.send_text(to_e164, caption).await
     }
+}
+
+/// Deterministic tags: the topic, then the longest distinct words of the idea.
+fn fake_tags(topic: &str, idea: &str) -> Vec<String> {
+    const STOP: [&str; 12] = [
+        "about", "after", "before", "their", "there", "these", "those", "which", "while", "would",
+        "every", "where",
+    ];
+    let mut tags = vec![topic.trim().to_lowercase()];
+    let mut words: Vec<String> = idea
+        .split(|c: char| !c.is_alphanumeric())
+        .map(|w| w.to_lowercase())
+        .filter(|w| w.chars().count() >= 5 && !STOP.contains(&w.as_str()))
+        .collect();
+    words.sort_by(|a, b| b.chars().count().cmp(&a.chars().count()).then(a.cmp(b)));
+    for w in words {
+        if !tags.contains(&w) {
+            tags.push(w);
+        }
+        if tags.len() == 4 {
+            break;
+        }
+    }
+    tags
 }

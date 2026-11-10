@@ -69,4 +69,19 @@ void main() {
     ];
     expect(seedAnswers(items).keys, [Fixtures.item1Id]);
   });
+
+  test(
+      'content cards continue unit numbering and "not for me" skips a whole unit',
+      () {
+    final first = contentCards(Fixtures.planItems);
+    expect(unitCount(first), 3);
+    final more = contentCards(Fixtures.planItems, firstUnit: 3);
+    expect(more.first.unitIndex, 3);
+    final cards = [...first, const LoadingStackCard()];
+    // Reel 1 (unit 0) and its question: the next unit starts at index 2.
+    expect(nextUnitStart(cards, 0), 2);
+    expect(nextUnitStart(cards, 1), 2);
+    expect(cards.last.unitIndex, isNull);
+    expect(nextUnitStart(cards, cards.length - 1), isNull);
+  });
 }

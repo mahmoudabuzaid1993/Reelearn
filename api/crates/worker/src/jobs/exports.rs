@@ -107,8 +107,10 @@ pub async fn data_export(
             serde_json::json!({ "topic": name, "questions_tracked": m.total, "remembered": m.remembered, "next_review_on": m.next_due_on })
         })
         .collect();
+    let engine = personal_engine_data(&mut tx, user_id, &topics_all).await?;
     let doc = serde_json::json!({
         "exported_at": Utc::now(),
+        "learning_engine": engine,
         "profile": {
             "full_name": user.full_name, "phone": user.phone_e164, "email": user.email, "employee_no": user.employee_no,
             "preferred_language": user.preferred_language, "delivery_channel": user.delivery_channel, "delivery_slot": user.delivery_slot,
@@ -119,7 +121,8 @@ pub async fn data_export(
         "what_your_company_sees": {
             "manager": "whether you are ready on each topic, and the team average",
             "hr": "training minutes on mandatory topics",
-            "nobody": "which answers you got wrong, what you saved, when you watch, your location"
+            "nobody": "which answers you got wrong, what you saved, when you watch, your location",
+            "used_only_to_choose_your_reels": "your interest in topics and tags, your skips and \"not for me\" taps, what colleagues sent you"
         }
     });
     let bytes = serde_json::to_vec_pretty(&doc).map_err(|e| JobError::Permanent(e.to_string()))?;
@@ -148,4 +151,60 @@ pub fn payload_uuid(payload: &serde_json::Value, key: &str) -> Result<Uuid, JobE
         .and_then(|v| v.as_str())
         .and_then(|s| s.parse().ok())
         .ok_or_else(|| JobError::Permanent(format!("payload is missing {key}")))
+}
+
+/// What the learning engine holds about one person: interest per topic and tag, follow/mute
+/// choices, signal counts, practice sessions and colleague shares (sent and received).
+async fn personal_engine_data(
+    tx: &mut reelearn_db::TenantTx,
+    user_id: Uuid,
+    topics_all: &[reelearn_db::repos::topics::TopicRow],
+) -> Result<serde_json::Value, JobError> {
+    use reelearn_db::repos::engine as eng;
+    let name = |id: Uuid| {
+        topics_all
+            .iter()
+            .find(|t| t.id == id)
+            .map(|t| t.name.clone())
+            .unwrap_or_default()
+    };
+    let topics: Vec<serde_json::Value> = eng::topic_interest(tx.conn(), user_id)
+        .await?
+        .into_iter()
+        .map(|t| serde_json::json!({ "topic": name(t.topic_id), "interest_score": t.score, "signals": t.events, "last_signal_at": t.last_event_at, "your_choice": t.preference }))
+        .collect();
+    let tags: Vec<serde_json::Value> = eng::tag_interest(tx.conn(), user_id)
+        .await?
+        .into_iter()
+        .map(|t| serde_json::json!({ "tag": t.tag, "interest_score": t.score, "last_signal_at": t.last_event_at }))
+        .collect();
+    let signals: Vec<(String, i64)> = sqlx::query_as(
+        "SELECT kind::text, count(*)::bigint FROM engagement_events WHERE user_id = $1 GROUP BY kind ORDER BY kind",
+    )
+    .bind(user_id)
+    .fetch_all(tx.conn())
+    .await?;
+    let sessions: (i64, i64) = sqlx::query_as(
+        "SELECT count(*)::bigint, coalesce(sum(active_ms), 0)::bigint FROM engine_sessions WHERE user_id = $1",
+    )
+    .bind(user_id)
+    .fetch_one(tx.conn())
+    .await?;
+    let shares: Vec<(String, String, String, Option<chrono::DateTime<Utc>>)> = sqlx::query_as(
+        "SELECT CASE WHEN s.sender_id = $1 THEN 'sent' ELSE 'received' END, r.title,
+                CASE WHEN s.sender_id = $1 THEN rc.full_name ELSE sd.full_name END, s.created_at
+         FROM reel_shares s JOIN reels r ON r.id = s.reel_id
+         JOIN users sd ON sd.id = s.sender_id JOIN users rc ON rc.id = s.recipient_id
+         WHERE s.sender_id = $1 OR s.recipient_id = $1 ORDER BY s.created_at",
+    )
+    .bind(user_id)
+    .fetch_all(tx.conn())
+    .await?;
+    Ok(serde_json::json!({
+        "topics": topics,
+        "tags": tags,
+        "signals": signals.into_iter().map(|(k, n)| serde_json::json!({ "kind": k, "count": n })).collect::<Vec<_>>(),
+        "practice": { "sessions": sessions.0, "minutes": sessions.1 as f64 / 60_000.0 },
+        "colleague_shares": shares.into_iter().map(|(dir, title, who, at)| serde_json::json!({ "direction": dir, "reel": title, "colleague": who, "at": at })).collect::<Vec<_>>(),
+    }))
 }

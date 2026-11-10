@@ -17,14 +17,19 @@
   "navProgress": "Progress",
   "navSettings": "Settings",
   "navTeam": "Team",
-
   "signInTitle": "Sign in",
   "companyCodeLabel": "Company code",
   "companyCodeHint": "for example alwadi",
   "companyLookup": "Find my company",
   "companyNotFound": "No company space with that code. Check with your manager.",
   "companyFound": "Welcome to {name}",
-  "@companyFound": {"placeholders": {"name": {"type": "String"}}},
+  "@companyFound": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "changeCompany": "Not your company?",
   "phoneLabel": "Mobile number",
   "phonePrefix": "+966",
@@ -33,19 +38,36 @@
   "phoneNotOnList": "This number isn't on your company's list. Ask your manager to add you.",
   "otpTitle": "Enter the code we sent on WhatsApp",
   "otpSentTo": "Sent to {phone}",
-  "@otpSentTo": {"placeholders": {"phone": {"type": "String"}}},
+  "@otpSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "otpHint": "4-digit code",
   "otpWrong": "That code isn't right. {attempts} attempts left.",
-  "@otpWrong": {"placeholders": {"attempts": {"type": "String"}}},
+  "@otpWrong": {
+    "placeholders": {
+      "attempts": {
+        "type": "String"
+      }
+    }
+  },
   "otpLocked": "Too many tries. Wait 15 minutes, then ask for a new code.",
   "otpExpired": "That code has expired. Ask for a new one.",
   "otpTooMany": "You've asked for a few codes already. Wait a little before asking again.",
   "otpResend": "Send a new code",
   "changeNumber": "Change number",
   "devCodeHint": "Development build: the code is 1234",
-
   "welcomeTitle": "Hi {name}",
-  "@welcomeTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@welcomeTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "welcomePromise1": "One minute a day. Never more.",
   "welcomePromise2": "A question after each reel, so it sticks.",
   "welcomePromise3": "Your answers stay yours. Managers see readiness, not answers.",
@@ -54,22 +76,66 @@
   "slotBreak": "Break",
   "slotShiftEnd": "Shift end",
   "startFirstMinute": "Start my first minute",
-
   "todayTitle": "Today",
   "greeting": "Good day, {name}",
-  "@greeting": {"placeholders": {"name": {"type": "String"}}},
+  "@greeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "newReelsCount": "{count, plural, =0{no new reels} =1{1 new reel} other{{count} new reels}}",
-  "@newReelsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@newReelsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reviewsCount": "{count, plural, =0{no review} =1{1 review} other{{count} reviews}}",
-  "@reviewsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@reviewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "aboutSeconds": "about {seconds} s",
-  "@aboutSeconds": {"placeholders": {"seconds": {"type": "int"}}},
+  "@aboutSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "streakChip": "{days}-day streak",
-  "@streakChip": {"placeholders": {"days": {"type": "int"}}},
+  "@streakChip": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "yesterdayLine": "Yesterday you remembered {remembered} of {total}.",
-  "@yesterdayLine": {"placeholders": {"remembered": {"type": "int"}, "total": {"type": "int"}}},
+  "@yesterdayLine": {
+    "placeholders": {
+      "remembered": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "nextReviewOn": "Next review on {date}.",
-  "@nextReviewOn": {"placeholders": {"date": {"type": "String"}}},
+  "@nextReviewOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "startMinute": "Start today's minute",
   "continueMinute": "Continue today's minute",
   "emptyTitle": "Nothing for today",
@@ -78,7 +144,6 @@
   "doneBody": "Your minute is complete. See you at the next shift.",
   "openSaved": "Saved reels",
   "todayLoadError": "Couldn't load today's plan.",
-
   "swipeHint": "Swipe up for the question",
   "swipeHintNext": "Swipe up for the next reel",
   "answerFirstToast": "Answer first, then swipe up",
@@ -90,26 +155,76 @@
   "remembered": "Remembered.",
   "notQuite": "Not quite.",
   "comesBackOn": "Comes back on {date}",
-  "@comesBackOn": {"placeholders": {"date": {"type": "String"}}},
+  "@comesBackOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "reviewChip": "Asked again · day {day}",
-  "@reviewChip": {"placeholders": {"day": {"type": "int"}}},
+  "@reviewChip": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
   "reviewLabel": "Review",
   "sourceLine": "Source: {citation}",
-  "@sourceLine": {"placeholders": {"citation": {"type": "String"}}},
+  "@sourceLine": {
+    "placeholders": {
+      "citation": {
+        "type": "String"
+      }
+    }
+  },
   "presenterLine": "with {name}",
-  "@presenterLine": {"placeholders": {"name": {"type": "String"}}},
+  "@presenterLine": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "answerSavedOffline": "Answer saved. You'll see the result when you're back online.",
   "doneRemembered": "Remembered {remembered} of {total}",
-  "@doneRemembered": {"placeholders": {"remembered": {"type": "int"}, "total": {"type": "int"}}},
+  "@doneRemembered": {
+    "placeholders": {
+      "remembered": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "streakLine": "{days}-day streak",
-  "@streakLine": {"placeholders": {"days": {"type": "int"}}},
+  "@streakLine": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "freezeNote": "{count, plural, =0{No streak freeze left this week. Fridays never count.} =1{1 streak freeze left for a day you miss. Fridays never count.} other{{count} streak freezes left for days you miss. Fridays never count.}}",
-  "@freezeNote": {"placeholders": {"count": {"type": "int"}}},
+  "@freezeNote": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "backToWork": "Back to work",
   "nothingMore": "That's all for today.",
   "unitLabel": "Unit {index}",
-  "@unitLabel": {"placeholders": {"index": {"type": "int"}}},
-
+  "@unitLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "savedTitle": "Saved",
   "searchHint": "Search reels",
   "allTopics": "All topics",
@@ -121,21 +236,43 @@
   "askForReelAnon": "Your manager sees the request, not your name.",
   "askSent": "Thanks. Your request is in.",
   "durationSeconds": "{seconds} s",
-  "@durationSeconds": {"placeholders": {"seconds": {"type": "int"}}},
-
+  "@durationSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "progressTitle": "Progress",
   "rememberedHeadline": "You remember {pct}%",
-  "@rememberedHeadline": {"placeholders": {"pct": {"type": "int"}}},
+  "@rememberedHeadline": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "rememberedCount": "{count} things remembered",
-  "@rememberedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@rememberedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "weeklyTitle": "Week by week",
   "byTopicTitle": "By topic",
   "milestonesTitle": "Milestones",
   "longestStreak": "Longest streak: {days} days",
-  "@longestStreak": {"placeholders": {"days": {"type": "int"}}},
+  "@longestStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "reached": "Reached",
   "notYetReached": "Not yet",
-
   "settingsTitle": "Settings",
   "language": "Language",
   "langAr": "العربية",
@@ -151,16 +288,34 @@
   "remindersSetting": "Reminders",
   "streakFreezeSetting": "Streak freeze",
   "streakFreezeBody": "{count, plural, =0{None left this week.} =1{1 left this week. It covers a day you miss.} other{{count} left this week. They cover days you miss.}}",
-  "@streakFreezeBody": {"placeholders": {"count": {"type": "int"}}},
+  "@streakFreezeBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "extraReelsSetting": "Extra reels",
   "extraReelsBody": "One more new reel a day. Still under two minutes.",
   "pauseSetting": "Pause for two weeks",
   "pauseBody": "Deliveries and your streak stop until you're back.",
   "pausedUntil": "Paused until {date}",
-  "@pausedUntil": {"placeholders": {"date": {"type": "String"}}},
+  "@pausedUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "resumeNow": "Resume now",
   "privacyTitle": "What {company} can see",
-  "@privacyTitle": {"placeholders": {"company": {"type": "String"}}},
+  "@privacyTitle": {
+    "placeholders": {
+      "company": {
+        "type": "String"
+      }
+    }
+  },
   "managerSees": "Your manager sees",
   "hrSees": "HR sees",
   "nobodySees": "Nobody sees",
@@ -168,25 +323,50 @@
   "exportQueued": "We'll send your data on WhatsApp within a day.",
   "signOut": "Sign out",
   "settingsSaved": "Saved",
-
   "teamTitle": "Team",
   "teamRecall": "Team recall {pct}%",
-  "@teamRecall": {"placeholders": {"pct": {"type": "int"}}},
+  "@teamRecall": {
+    "placeholders": {
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
   "activeThisWeek": "{active} of {size} active this week",
-  "@activeThisWeek": {"placeholders": {"active": {"type": "int"}, "size": {"type": "int"}}},
+  "@activeThisWeek": {
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "size": {
+        "type": "int"
+      }
+    }
+  },
   "ready": "Ready",
   "notYet": "Not yet",
   "notStarted": "Not started",
   "nudge": "Nudge",
   "nudgedToday": "Nudged today",
   "nudgeSent": "Reminder sent to {name}",
-  "@nudgeSent": {"placeholders": {"name": {"type": "String"}}},
+  "@nudgeSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "nudgeSkipped": "{name} was already nudged today",
-  "@nudgeSkipped": {"placeholders": {"name": {"type": "String"}}},
+  "@nudgeSkipped": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "recordReel": "Record a reel",
   "privacyFootnote": "You see readiness per topic. Never answers, saves, or times.",
   "usesWhatsapp": "WhatsApp",
-
   "recordTitle": "Record a reel",
   "recordTopic": "Topic",
   "recordPromptTitle": "Your three lines",
@@ -194,11 +374,23 @@
   "promptLine2": "Line 2: when it matters",
   "promptLine3": "Line 3: how to do it",
   "consentLabel": "I agree that my face and voice appear in this reel for {company} staff.",
-  "@consentLabel": {"placeholders": {"company": {"type": "String"}}},
+  "@consentLabel": {
+    "placeholders": {
+      "company": {
+        "type": "String"
+      }
+    }
+  },
   "startRecording": "Start recording",
   "stopRecording": "Stop",
   "secondsLeft": "{seconds} s left",
-  "@secondsLeft": {"placeholders": {"seconds": {"type": "int"}}},
+  "@secondsLeft": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "retake": "Retake",
   "sendToReview": "Send to review",
   "sending": "Sending",
@@ -206,5 +398,122 @@
   "cameraUnavailable": "The camera isn't available on this device.",
   "recordNeedsConsent": "Tick the consent box to continue.",
   "recordNeedsPrompt": "Write your three lines first.",
-  "recordingLabel": "Recording"
+  "recordingLabel": "Recording",
+  "keepGoing": "Keep going",
+  "keepGoingHint": "A few more reels picked for you, whenever you like.",
+  "sendReel": "Send",
+  "notForMe": "Not for me",
+  "notForMeDone": "Got it. Fewer reels like this.",
+  "reasonShared": "Sent by {name}",
+  "@reasonShared": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonMandatory": "Required · {topic}",
+  "@reasonMandatory": {
+    "placeholders": {
+      "topic": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonFollowed": "You follow {topic}",
+  "@reasonFollowed": {
+    "placeholders": {
+      "topic": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonInterest": "Because you like {topic}",
+  "@reasonInterest": {
+    "placeholders": {
+      "topic": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonPopular": "Popular in {place}",
+  "@reasonPopular": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonNew": "New in {topic}",
+  "@reasonNew": {
+    "placeholders": {
+      "topic": {
+        "type": "String"
+      }
+    }
+  },
+  "reasonExplore": "Something new to try",
+  "reasonReview": "Quick review",
+  "reasonFrom": "From {topic}",
+  "@reasonFrom": {
+    "placeholders": {
+      "topic": {
+        "type": "String"
+      }
+    }
+  },
+  "practiceTitle": "Practice",
+  "practiceLoading": "Picking your next reels…",
+  "practiceError": "Couldn't load more reels.",
+  "breakTitle": "Time for a short pause",
+  "breakBody": "Stretch, look away from the screen, have some water. Your next reel will wait.",
+  "breakContinue": "Swipe up when you're ready",
+  "breakStop": "Stop for now",
+  "practiceEndTitle": "That's it for now",
+  "practiceEndDailyCap": "You've reached today's practice time. See you tomorrow.",
+  "practiceEndSessionCap": "That's a full session. Come back later for more.",
+  "practiceEndOutsideHours": "Practice opens during work hours.",
+  "practiceEndPaused": "Your reminders and practice are paused.",
+  "practiceEndExhausted": "You've seen everything for now. New reels arrive soon.",
+  "practiceEndDisabled": "Your company has practice switched off.",
+  "practiceBackToToday": "Back to today",
+  "shareTitle": "Send to colleagues",
+  "shareSearch": "Search by name",
+  "shareNote": "Add a note (optional)",
+  "shareNone": "No colleagues found.",
+  "shareSent": "{count, plural, =1{Sent to 1 colleague} other{Sent to {count} colleagues}}",
+  "@shareSent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareSendCount": "{count, plural, =0{Send} other{Send to {count}}}",
+  "@shareSendCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "topicsTitle": "Your topics",
+  "topicsSubtitle": "Follow what you want more of, mute what isn't for you. Required topics always stay.",
+  "topicsPersonalized": "Personalise my reels",
+  "topicsPersonalizedHint": "Off: reels come in the order your company set, without using your interests.",
+  "topicFollow": "Follow",
+  "topicMute": "Mute",
+  "topicRequired": "Required",
+  "topicInterest": "Interest {value} %",
+  "@topicInterest": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "topicsTags": "What you lean toward",
+  "topicsOpen": "Your topics",
+  "topicsOpenHint": "Follow, mute, and how reels are chosen for you",
+  "topicsMuteRequired": "Required topics can't be muted."
 }

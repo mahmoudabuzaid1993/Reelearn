@@ -1095,6 +1095,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recording'**
   String get recordingLabel;
+
+  /// No description provided for @keepGoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep going'**
+  String get keepGoing;
+
+  /// No description provided for @keepGoingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A few more reels picked for you, whenever you like.'**
+  String get keepGoingHint;
+
+  /// No description provided for @sendReel.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get sendReel;
+
+  /// No description provided for @notForMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Not for me'**
+  String get notForMe;
+
+  /// No description provided for @notForMeDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it. Fewer reels like this.'**
+  String get notForMeDone;
+
+  /// No description provided for @reasonShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent by {name}'**
+  String reasonShared(String name);
+
+  /// No description provided for @reasonMandatory.
+  ///
+  /// In en, this message translates to:
+  /// **'Required · {topic}'**
+  String reasonMandatory(String topic);
+
+  /// No description provided for @reasonFollowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You follow {topic}'**
+  String reasonFollowed(String topic);
+
+  /// No description provided for @reasonInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Because you like {topic}'**
+  String reasonInterest(String topic);
+
+  /// No description provided for @reasonPopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular in {place}'**
+  String reasonPopular(String place);
+
+  /// No description provided for @reasonNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New in {topic}'**
+  String reasonNew(String topic);
+
+  /// No description provided for @reasonExplore.
+  ///
+  /// In en, this message translates to:
+  /// **'Something new to try'**
+  String get reasonExplore;
+
+  /// No description provided for @reasonReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick review'**
+  String get reasonReview;
+
+  /// No description provided for @reasonFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From {topic}'**
+  String reasonFrom(String topic);
+
+  /// No description provided for @practiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice'**
+  String get practiceTitle;
+
+  /// No description provided for @practiceLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Picking your next reels…'**
+  String get practiceLoading;
+
+  /// No description provided for @practiceError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t load more reels.'**
+  String get practiceError;
+
+  /// No description provided for @breakTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time for a short pause'**
+  String get breakTitle;
+
+  /// No description provided for @breakBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Stretch, look away from the screen, have some water. Your next reel will wait.'**
+  String get breakBody;
+
+  /// No description provided for @breakContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe up when you\'re ready'**
+  String get breakContinue;
+
+  /// No description provided for @breakStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop for now'**
+  String get breakStop;
+
+  /// No description provided for @practiceEndTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s it for now'**
+  String get practiceEndTitle;
+
+  /// No description provided for @practiceEndDailyCap.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve reached today\'s practice time. See you tomorrow.'**
+  String get practiceEndDailyCap;
+
+  /// No description provided for @practiceEndSessionCap.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s a full session. Come back later for more.'**
+  String get practiceEndSessionCap;
+
+  /// No description provided for @practiceEndOutsideHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice opens during work hours.'**
+  String get practiceEndOutsideHours;
+
+  /// No description provided for @practiceEndPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reminders and practice are paused.'**
+  String get practiceEndPaused;
+
+  /// No description provided for @practiceEndExhausted.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve seen everything for now. New reels arrive soon.'**
+  String get practiceEndExhausted;
+
+  /// No description provided for @practiceEndDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Your company has practice switched off.'**
+  String get practiceEndDisabled;
+
+  /// No description provided for @practiceBackToToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to today'**
+  String get practiceBackToToday;
+
+  /// No description provided for @shareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to colleagues'**
+  String get shareTitle;
+
+  /// No description provided for @shareSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name'**
+  String get shareSearch;
+
+  /// No description provided for @shareNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note (optional)'**
+  String get shareNote;
+
+  /// No description provided for @shareNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No colleagues found.'**
+  String get shareNone;
+
+  /// No description provided for @shareSent.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Sent to 1 colleague} other{Sent to {count} colleagues}}'**
+  String shareSent(int count);
+
+  /// No description provided for @shareSendCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Send} other{Send to {count}}}'**
+  String shareSendCount(int count);
+
+  /// No description provided for @topicsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your topics'**
+  String get topicsTitle;
+
+  /// No description provided for @topicsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow what you want more of, mute what isn\'t for you. Required topics always stay.'**
+  String get topicsSubtitle;
+
+  /// No description provided for @topicsPersonalized.
+  ///
+  /// In en, this message translates to:
+  /// **'Personalise my reels'**
+  String get topicsPersonalized;
+
+  /// No description provided for @topicsPersonalizedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: reels come in the order your company set, without using your interests.'**
+  String get topicsPersonalizedHint;
+
+  /// No description provided for @topicFollow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get topicFollow;
+
+  /// No description provided for @topicMute.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get topicMute;
+
+  /// No description provided for @topicRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get topicRequired;
+
+  /// No description provided for @topicInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest {value} %'**
+  String topicInterest(int value);
+
+  /// No description provided for @topicsTags.
+  ///
+  /// In en, this message translates to:
+  /// **'What you lean toward'**
+  String get topicsTags;
+
+  /// No description provided for @topicsOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Your topics'**
+  String get topicsOpen;
+
+  /// No description provided for @topicsOpenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow, mute, and how reels are chosen for you'**
+  String get topicsOpenHint;
+
+  /// No description provided for @topicsMuteRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required topics can\'t be muted.'**
+  String get topicsMuteRequired;
 }
 
 class _AppLocalizationsDelegate

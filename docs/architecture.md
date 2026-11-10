@@ -75,6 +75,10 @@ Spaced repetition is SM-2 with fixed first intervals (1, 3, 10, 30 days) because
 
 What managers and HR can see is a data rule, not a UI rule: endpoints under `/manager` and `/admin/reports` read from aggregate tables that carry no `question_id`, `chosen_key` or timestamps finer than a day. Per-answer rows are reachable only through `/me`.
 
+## 5a. The learning engine
+
+Practice ("keep going" after the minute) and the order of new reels in the daily plan come from the learning engine. It works like a short-video recommender: signals, smoothed predictions, a weighted value model with negatives subtracted, then re-ranking for colleague shares, exploration, topic diversity and reviews. Each company tunes its intensity from Gentle to Maximum, within guardrails that stay on. See [engine.md](engine.md).
+
 ## 6. Scalability notes
 
 - API is stateless; scale horizontally behind a load balancer. One replica handles roughly 2–3k req/s of cached reads on 2 vCPU.

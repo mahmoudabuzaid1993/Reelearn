@@ -54,6 +54,8 @@ class ReelCardView extends StatelessWidget {
     required this.onToggleSave,
     required this.onProgress,
     this.mediaBuilder,
+    this.onNotForMe,
+    this.onShare,
     super.key,
   });
 
@@ -70,6 +72,12 @@ class ReelCardView extends StatelessWidget {
   final VoidCallback onToggleSave;
   final void Function(int positionMs, int durationMs) onProgress;
   final ReelMediaBuilder? mediaBuilder;
+
+  /// "Not for me" (practice and plan); hidden when null.
+  final VoidCallback? onNotForMe;
+
+  /// "Send to a colleague"; hidden when null.
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +110,16 @@ class ReelCardView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (card.item.practiceReason != null) ...[
+                  _ReasonChip(
+                    text: reasonLine(
+                      l,
+                      card.item.practiceReason!,
+                      card.item.reasonDetail ?? reel.topicName,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
                 Text(
                   reel.topicName.toUpperCase(),
                   style: text.labelMedium?.copyWith(
@@ -187,6 +205,22 @@ class ReelCardView extends StatelessWidget {
                   active: captionsOn,
                   onTap: onToggleCaptions,
                 ),
+                if (onShare != null)
+                  _SideAction(
+                    key: const Key('action-share'),
+                    icon: Icons.send_outlined,
+                    label: l.sendReel,
+                    active: false,
+                    onTap: onShare!,
+                  ),
+                if (onNotForMe != null)
+                  _SideAction(
+                    key: const Key('action-not-for-me'),
+                    icon: Icons.do_not_disturb_on_outlined,
+                    label: l.notForMe,
+                    active: false,
+                    onTap: onNotForMe!,
+                  ),
                 _SideAction(
                   key: const Key('action-why'),
                   icon: Icons.info_outline,
@@ -274,6 +308,43 @@ class ReelCardView extends StatelessWidget {
       ),
     );
   }
+}
+
+/// "Sent by Sara", "From Customer service", "Popular in Jeddah"...
+String reasonLine(AppLocalizations l, String reason, String detail) =>
+    switch (reason) {
+      'shared' => l.reasonShared(detail),
+      'mandatory' => l.reasonMandatory(detail),
+      'followed' => l.reasonFollowed(detail),
+      'interest' => l.reasonInterest(detail),
+      'popular' => l.reasonPopular(detail),
+      'new' => l.reasonNew(detail),
+      'explore' => l.reasonExplore,
+      'review' => l.reasonReview,
+      _ => l.reasonFrom(detail),
+    };
+
+class _ReasonChip extends StatelessWidget {
+  const _ReasonChip({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        key: const Key('reel-reason'),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: Brand.white.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          text,
+          style: Theme.of(context)
+              .textTheme
+              .labelMedium
+              ?.copyWith(color: Brand.white),
+        ),
+      );
 }
 
 class _SideAction extends StatelessWidget {

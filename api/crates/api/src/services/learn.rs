@@ -111,6 +111,7 @@ pub async fn build_today(
         items,
         stats: views::user_stats(stats_row.as_ref()),
         yesterday,
+        practice_available: crate::services::engine::practice_available(ctx),
     })
 }
 
@@ -212,6 +213,15 @@ pub async fn record_watch(
         device_id,
         req.watched_ms.max(0),
         req.completed,
+    )
+    .await?;
+    crate::services::engine::on_watch(
+        tx,
+        ctx,
+        &reel,
+        req.watched_ms.max(0),
+        req.completed,
+        channel,
     )
     .await?;
 
@@ -344,6 +354,8 @@ pub async fn record_answer(
         now,
     )
     .await?;
+
+    crate::services::engine::on_answer(tx, ctx, &reel, is_correct).await?;
 
     let plan_status = match &item {
         Some(i) => {

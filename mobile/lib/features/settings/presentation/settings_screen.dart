@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/format.dart';
 import '../../../app/l10n/gen/app_localizations.dart';
+import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../app/widgets.dart';
 import '../../../core/api/models/models.dart';
@@ -116,6 +118,14 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: Text(l.extraReelsBody),
             value: me.extraReelsOn,
             onChanged: (v) => apply(MePatch(extraReelsOn: v)),
+          ),
+          ListTile(
+            key: const Key('open-topics'),
+            leading: const Icon(Icons.tune, color: Brand.ink),
+            title: Text(l.topicsOpen),
+            subtitle: Text(l.topicsOpenHint),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(Routes.topics),
           ),
           ListTile(
             leading: const Icon(Icons.ac_unit_outlined, color: Brand.ink),

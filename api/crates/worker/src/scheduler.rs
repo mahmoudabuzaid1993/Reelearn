@@ -1,6 +1,7 @@
 //! The scheduler leader: one worker holds a Redis lease and, every tick, enqueues the
 //! per-tenant `build_daily_plans` job at the tenant's local build hour, fans out due
-//! deliveries, releases stale jobs and keeps next month's partitions ready.
+//! deliveries, runs the hourly learning-engine upkeep, releases stale jobs and keeps next
+//! month's partitions ready.
 
 use crate::jobs::{JobError, JobOutcome};
 use crate::Ctx;
@@ -91,6 +92,21 @@ pub async fn tick_once(ctx: &Ctx) -> Result<(), reelearn_db::DbError> {
         }
     }
 
+    // Learning-engine upkeep: once an hour per tenant (baselines, cohorts, reminders).
+    let hour = now.format("%Y-%m-%dT%H").to_string();
+    for tenant in tenants::list_all(&mut admin).await? {
+        if !jobs::exists_with_key(&mut admin, tenant.id, "engine_hourly", "hour", &hour).await? {
+            jobs::enqueue(
+                &mut admin,
+                Some(tenant.id),
+                "engine_hourly",
+                serde_json::json!({ "tenant_id": tenant.id, "hour": hour }),
+                None,
+            )
+            .await?;
+        }
+    }
+
     // Deliveries whose time has come and that no job carries yet.
     for d in deliveries::due_admin(&mut admin, 500).await? {
         if jobs::active_for_delivery(&mut admin, d.id).await? {
@@ -140,7 +156,13 @@ pub async fn maintain_partitions(ctx: &Ctx) -> Result<JobOutcome, JobError> {
         today.with_month(today.month() + 1)
     }
     .unwrap_or(today);
-    for table in ["watch_events", "answers", "deliveries", "audit_log"] {
+    for table in [
+        "watch_events",
+        "answers",
+        "deliveries",
+        "audit_log",
+        "engagement_events",
+    ] {
         for month in [today, next] {
             sqlx::query("SELECT ensure_month_partition($1, $2)")
                 .bind(table)

@@ -1,6 +1,7 @@
 //! Job kinds and their handlers. `dispatch` is the only place that maps `jobs.kind` to code.
 
 pub mod deliveries;
+pub mod engine;
 pub mod exports;
 pub mod pipeline;
 pub mod plans;
@@ -66,6 +67,7 @@ pub const KINDS: &[&str] = &[
     "hrdf_export",
     "data_export",
     "maintain_partitions",
+    "engine_hourly",
 ];
 
 pub async fn dispatch(ctx: &Ctx, job: &JobRow) -> Result<JobOutcome, JobError> {
@@ -89,6 +91,7 @@ pub async fn dispatch(ctx: &Ctx, job: &JobRow) -> Result<JobOutcome, JobError> {
         "hrdf_export" => exports::hrdf_export(ctx, tenant()?, &job.payload).await,
         "data_export" => exports::data_export(ctx, tenant()?, &job.payload).await,
         "maintain_partitions" => crate::scheduler::maintain_partitions(ctx).await,
+        "engine_hourly" => engine::engine_hourly(ctx, tenant()?).await,
         other => Err(JobError::Permanent(format!(
             "no handler for job kind {other}"
         ))),

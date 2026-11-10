@@ -50,3 +50,7 @@ Legend: **T** = covered by an integration test, **U** = covered by unit tests of
 - Dubbing reuses the master video with translated captions until a dub vendor is configured.
 - Real video/voice/ASR vendors are adapters with a generic job contract; the exact field mapping per vendor lives in `crates/worker/src/providers/real.rs`.
 - `GET /admin/generation-jobs/{id}/events` streams snapshots by polling the database every 2 s; a LISTEN/NOTIFY push can replace that without a contract change.
+
+## Learning engine (2026-11-09)
+
+- Learning engine: migration 0004, pure ranker in `domain::engine` (24 unit tests), loaders and SQL in `db`, `/me/next`, `/me/events`, `/me/topics`, `/me/personalization`, `/me/colleagues`, `/me/shares`, `/admin/engine`, `/admin/engine/insights`, hourly `engine_hourly` job (baselines, cohorts, reminders), 7 HTTP integration tests. Design: `docs/engine.md`.

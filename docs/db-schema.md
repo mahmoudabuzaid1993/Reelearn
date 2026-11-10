@@ -65,6 +65,19 @@ Design consequences:
 - `exports` — HRDF evidence packs and personal data exports (job-produced files).
 - `audit_log` (partitioned) — append-only actor/action/entity/diff.
 
+### Learning engine (migration 0004)
+
+- `engagement_events`: every signal, monthly partitions, indexed by person, reel, kind and session.
+- `reel_engagement_stats`: running counters per reel, updated in the signal's transaction, so the ranker reads current values without scanning events.
+- `duration_band_stats`: completion baselines per length band, refreshed hourly.
+- `cohort_reel_stats`: 7-day activity per location, job title and team, refreshed hourly.
+- `user_topic_affinity` and `user_tag_affinity`: decayed interest and the person's follow/mute choice.
+- `reel_shares`: colleague shares, unique per reel, sender and recipient, with an index for unopened shares.
+- `engine_sessions`: practice sessions and their practice time.
+- `reels.tags`, with a GIN index, and `reels.difficulty`; `users.personalized`.
+
+All of them are tenant-scoped with the same FORCE row-level security policy. Design: [engine.md](engine.md).
+
 ## 3. Indexes, each with its reason
 
 Format: `table (columns) [type/partial]` — pattern it serves.

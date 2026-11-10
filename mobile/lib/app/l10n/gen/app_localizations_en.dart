@@ -608,4 +608,184 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recordingLabel => 'Recording';
+
+  @override
+  String get keepGoing => 'Keep going';
+
+  @override
+  String get keepGoingHint =>
+      'A few more reels picked for you, whenever you like.';
+
+  @override
+  String get sendReel => 'Send';
+
+  @override
+  String get notForMe => 'Not for me';
+
+  @override
+  String get notForMeDone => 'Got it. Fewer reels like this.';
+
+  @override
+  String reasonShared(String name) {
+    return 'Sent by $name';
+  }
+
+  @override
+  String reasonMandatory(String topic) {
+    return 'Required · $topic';
+  }
+
+  @override
+  String reasonFollowed(String topic) {
+    return 'You follow $topic';
+  }
+
+  @override
+  String reasonInterest(String topic) {
+    return 'Because you like $topic';
+  }
+
+  @override
+  String reasonPopular(String place) {
+    return 'Popular in $place';
+  }
+
+  @override
+  String reasonNew(String topic) {
+    return 'New in $topic';
+  }
+
+  @override
+  String get reasonExplore => 'Something new to try';
+
+  @override
+  String get reasonReview => 'Quick review';
+
+  @override
+  String reasonFrom(String topic) {
+    return 'From $topic';
+  }
+
+  @override
+  String get practiceTitle => 'Practice';
+
+  @override
+  String get practiceLoading => 'Picking your next reels…';
+
+  @override
+  String get practiceError => 'Couldn\'t load more reels.';
+
+  @override
+  String get breakTitle => 'Time for a short pause';
+
+  @override
+  String get breakBody =>
+      'Stretch, look away from the screen, have some water. Your next reel will wait.';
+
+  @override
+  String get breakContinue => 'Swipe up when you\'re ready';
+
+  @override
+  String get breakStop => 'Stop for now';
+
+  @override
+  String get practiceEndTitle => 'That\'s it for now';
+
+  @override
+  String get practiceEndDailyCap =>
+      'You\'ve reached today\'s practice time. See you tomorrow.';
+
+  @override
+  String get practiceEndSessionCap =>
+      'That\'s a full session. Come back later for more.';
+
+  @override
+  String get practiceEndOutsideHours => 'Practice opens during work hours.';
+
+  @override
+  String get practiceEndPaused => 'Your reminders and practice are paused.';
+
+  @override
+  String get practiceEndExhausted =>
+      'You\'ve seen everything for now. New reels arrive soon.';
+
+  @override
+  String get practiceEndDisabled => 'Your company has practice switched off.';
+
+  @override
+  String get practiceBackToToday => 'Back to today';
+
+  @override
+  String get shareTitle => 'Send to colleagues';
+
+  @override
+  String get shareSearch => 'Search by name';
+
+  @override
+  String get shareNote => 'Add a note (optional)';
+
+  @override
+  String get shareNone => 'No colleagues found.';
+
+  @override
+  String shareSent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sent to $count colleagues',
+      one: 'Sent to 1 colleague',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shareSendCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Send to $count',
+      zero: 'Send',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get topicsTitle => 'Your topics';
+
+  @override
+  String get topicsSubtitle =>
+      'Follow what you want more of, mute what isn\'t for you. Required topics always stay.';
+
+  @override
+  String get topicsPersonalized => 'Personalise my reels';
+
+  @override
+  String get topicsPersonalizedHint =>
+      'Off: reels come in the order your company set, without using your interests.';
+
+  @override
+  String get topicFollow => 'Follow';
+
+  @override
+  String get topicMute => 'Mute';
+
+  @override
+  String get topicRequired => 'Required';
+
+  @override
+  String topicInterest(int value) {
+    return 'Interest $value %';
+  }
+
+  @override
+  String get topicsTags => 'What you lean toward';
+
+  @override
+  String get topicsOpen => 'Your topics';
+
+  @override
+  String get topicsOpenHint => 'Follow, mute, and how reels are chosen for you';
+
+  @override
+  String get topicsMuteRequired => 'Required topics can\'t be muted.';
 }
