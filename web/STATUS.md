@@ -45,3 +45,10 @@ All data access goes through the generated client (`src/lib/api`, from `../opena
 ## Learning engine (2026-11-09)
 
 - Learning engine page (`/engine`): intensity presets, value-model weights, practice, discovery, learning and reminder settings, and an insights tab; mock handlers; vitest for the settings logic and Playwright for preset, tuning and insights.
+
+## AI providers and the platform page (2026-11-10)
+
+- Settings → AI: writer choice, TypeSafe Jev quality check and threshold, role matching, tag check; whose key each provider uses with the plan's budget meter; monthly usage with cost by key source. Key dialogs take models, endpoints and optional prices.
+- Platform page (`/platform`, shown only to platform operators): platform keys and prices, companies with usage, billable amounts and budget, plan editor, invoice CSV download.
+- Quality badge in the library and the check's flags in the reel editor and publish screen.
+- Verified: lint and typecheck clean, vitest 14 files / 54 tests, Playwright 18 scenarios (3 new in `e2e/ai.spec.ts`).

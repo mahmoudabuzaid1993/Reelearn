@@ -19,6 +19,11 @@ export const keys = {
   exports: ["exports"] as const,
   integrations: ["integrations"] as const,
   engine: ["engine"] as const,
+  ai: ["ai"] as const,
+  aiUsage: (month: string) => ["ai-usage", month] as const,
+  platformMe: ["platform-me"] as const,
+  platformIntegrations: ["platform-integrations"] as const,
+  platformTenants: (month: string) => ["platform-tenants", month] as const,
   engineInsights: (range: string) => ["engine-insights", range] as const,
   audit: (params: Record<string, string | undefined>) => ["audit", params] as const,
 };

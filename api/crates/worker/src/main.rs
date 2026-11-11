@@ -21,13 +21,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .map(|v| v == "real")
         .unwrap_or(!config.app_env.is_development());
     let state = AppState::connect(config).await?;
-    let providers = if use_real {
-        Providers::from_env(state.http.clone())
+    // Real mode resolves each company's keys per job (its own, else the platform's, else the
+    // environment); development runs every company on the deterministic fakes.
+    let ctx = if use_real {
+        tracing::info!("worker providers: per company (company key, platform key, environment)");
+        Arc::new(Ctx::per_company(state))
     } else {
-        Providers::fake()
+        let providers = Providers::fake();
+        tracing::info!(providers = %providers.summary(), "worker providers");
+        Arc::new(Ctx::new(state, providers))
     };
-    tracing::info!(providers = %providers.summary(), "worker providers");
-    let ctx = Arc::new(Ctx::new(state, providers));
 
     let mut opts = RunOptions::default();
     if let Ok(n) = std::env::var("WORKER_CONCURRENCY") {

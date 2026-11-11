@@ -54,3 +54,11 @@ Legend: **T** = covered by an integration test, **U** = covered by unit tests of
 ## Learning engine (2026-11-09)
 
 - Learning engine: migration 0004, pure ranker in `domain::engine` (24 unit tests), loaders and SQL in `db`, `/me/next`, `/me/events`, `/me/topics`, `/me/personalization`, `/me/colleagues`, `/me/shares`, `/admin/engine`, `/admin/engine/insights`, hourly `engine_hourly` job (baselines, cohorts, reminders), 7 HTTP integration tests. Design: `docs/engine.md`.
+
+## AI providers and the platform layer (2026-11-10)
+
+- Migration 0005: `platform_operators`, `platform_integrations`, `tenants.ai_plan`, partitioned `ai_usage`, `reels.ai_review`/`quality_score`, `reel_role_fit`, `ai_typesafe` integration kind.
+- Per-company key resolution (own key, else the platform's within plan and budget) in `services::ai`; the worker builds each job's providers from it (`Ctx::per_company`) and meters every call (`Meter` → `ai_usage`).
+- TypeSafe Jev adapter (`providers/jev.rs`): draft quality check after the question step, tag check against the company's vocabulary, hourly job-title relevance feeding the ranker as a fading prior.
+- Endpoints: `/admin/ai`, `/admin/ai/usage`, `/platform/me`, `/platform/integrations[/{kind}[/test]]`, `/platform/tenants`, `/platform/tenants/{id}/ai-plan`, `/platform/usage.csv` (82 contract paths). `reelearn-api grant-platform-operator <email>`.
+- Verified: `cargo test --workspace` 140 passing (incl. 4 new HTTP tests in `tests/ai.rs` and 2 end-to-end worker tests against a mock TypeSafe API in `tests/jev.rs`), fmt and clippy `-D warnings` clean. Design: `docs/ai-providers.md`.

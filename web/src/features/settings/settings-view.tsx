@@ -17,20 +17,23 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { Tabs } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
+import { AiPanel } from "@/features/ai/ai-panel";
+import { configPatch, PRICE_FIELDS, PROVIDER_FIELDS, type ProviderKind } from "@/features/ai/logic/ai";
 import { DeliverySettingsForm } from "./delivery-settings-form";
 
-type Tab = "integrations" | "delivery" | "residency" | "credits";
+type Tab = "integrations" | "ai" | "delivery" | "residency" | "credits";
 
 const GROUPS: { key: string; kinds: IntegrationKind[] }[] = [
   { key: "identity", kinds: ["sso_entra", "hris_jisr", "hris_bayzat"] },
   { key: "channels", kinds: ["whatsapp", "teams"] },
-  { key: "ai", kinds: ["ai_muse", "ai_claude", "ai_higgsfield", "ai_veo", "voice", "asr"] },
+  { key: "ai", kinds: ["ai_muse", "ai_claude", "ai_typesafe", "ai_higgsfield", "ai_veo", "voice", "asr"] },
   { key: "storage", kinds: ["storage"] },
 ];
 
 export function SettingsView() {
   const t = useTranslations("settings");
   const [tab, setTab] = useState<Tab>("integrations");
+  const [editing, setEditing] = useState<IntegrationKind | null>(null);
   return (
     <>
       <PageHeader title={t("title")} description={t("subtitle")} />
@@ -40,17 +43,20 @@ export function SettingsView() {
         onChange={setTab}
         items={[
           { value: "integrations", label: t("tabs.integrations") },
+          { value: "ai", label: t("tabs.ai") },
           { value: "delivery", label: t("tabs.delivery") },
           { value: "residency", label: t("tabs.residency") },
           { value: "credits", label: t("tabs.credits") },
         ]}
       />
       <div className="mt-6">
-        {tab === "integrations" ? <IntegrationsPanel /> : null}
+        {tab === "integrations" ? <IntegrationsPanel onEdit={setEditing} /> : null}
+        {tab === "ai" ? <AiPanel onManageKey={(kind: ProviderKind) => setEditing(kind as IntegrationKind)} /> : null}
         {tab === "delivery" ? <DeliveryPanel /> : null}
         {tab === "residency" ? <ResidencyPanel /> : null}
         {tab === "credits" ? <CreditsPanel /> : null}
       </div>
+      <IntegrationDialog kind={editing} onClose={() => setEditing(null)} />
     </>
   );
 }
@@ -59,13 +65,12 @@ function statusTone(status: Integration["status"]) {
   return status === "connected" ? "mint" : status === "error" ? "coral" : "neutral";
 }
 
-function IntegrationsPanel() {
+function IntegrationsPanel({ onEdit }: { onEdit: (kind: IntegrationKind) => void }) {
   const t = useTranslations("settings");
   const locale = useLocale();
   const query = useIntegrations();
   const test = useTestIntegration();
   const { toast } = useToast();
-  const [editing, setEditing] = useState<IntegrationKind | null>(null);
 
   if (query.isPending) return <SkeletonRows rows={6} />;
   if (query.isError) return <ErrorNotice error={query.error} onRetry={() => void query.refetch()} />;
@@ -102,7 +107,7 @@ function IntegrationsPanel() {
                     >
                       {t("test")}
                     </Button>
-                    <Button size="sm" variant="secondary" onClick={() => setEditing(kind)}>
+                    <Button size="sm" variant="secondary" onClick={() => onEdit(kind)}>
                       {item.status === "disconnected" ? t("connect") : t("configure")}
                     </Button>
                   </div>
@@ -112,53 +117,59 @@ function IntegrationsPanel() {
           </ul>
         </Card>
       ))}
-      <IntegrationDialog kind={editing} onClose={() => setEditing(null)} />
     </div>
   );
 }
 
-const FIELDS: Partial<Record<IntegrationKind, { name: string; secret?: boolean }[]>> = {
+const FIELDS: Partial<Record<IntegrationKind, { name: string; secret?: boolean; optional?: boolean }[]>> = {
   hris_jisr: [{ name: "company_id" }, { name: "api_key", secret: true }],
   hris_bayzat: [{ name: "company_id" }, { name: "api_token", secret: true }],
   sso_entra: [{ name: "tenant_id" }, { name: "client_id" }, { name: "client_secret", secret: true }],
-  whatsapp: [{ name: "phone_number_id" }, { name: "access_token", secret: true }],
   teams: [{ name: "tenant_id" }, { name: "app_password", secret: true }],
-  ai_muse: [{ name: "api_key", secret: true }, { name: "model" }],
-  ai_claude: [{ name: "api_key", secret: true }, { name: "model" }],
-  ai_higgsfield: [{ name: "api_key", secret: true }],
   ai_veo: [{ name: "project_id" }, { name: "api_key", secret: true }],
-  voice: [{ name: "api_key", secret: true }, { name: "default_voice" }],
-  asr: [{ name: "api_key", secret: true }],
   storage: [{ name: "bucket" }, { name: "region" }, { name: "secret_key", secret: true }],
+  ...PROVIDER_FIELDS,
 };
+
+/** AI providers can carry the company's own vendor prices, so usage shows what its keys cost. */
+const PRICED: IntegrationKind[] = ["ai_muse", "ai_claude", "ai_typesafe", "ai_higgsfield", "voice", "asr"];
 
 function IntegrationDialog({ kind, onClose }: { kind: IntegrationKind | null; onClose: () => void }) {
   const t = useTranslations("settings");
   const save = useSaveIntegration();
   const { toast } = useToast();
   const [values, setValues] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Set<string>>(new Set());
   if (!kind) return null;
-  const fields = FIELDS[kind] ?? [];
+  const fields = [
+    ...(FIELDS[kind] ?? []),
+    ...(PRICED.includes(kind) ? PRICE_FIELDS.filter((p) => kind !== "ai_typesafe" || p !== "price_per_call").map((name) => ({ name, optional: true, secret: false })) : []),
+  ];
+  const label = (name: string) => (t.has(`fields.${name}`) ? t(`fields.${name}` as never) : name.replace(/_/g, " "));
+  const close = () => {
+    setValues({});
+    setTouched(new Set());
+    onClose();
+  };
   return (
     <Dialog
       open={Boolean(kind)}
-      onClose={onClose}
+      onClose={close}
       title={t("configureKind", { kind: t(`kinds.${kind}`) })}
       description={t("secretsWriteOnly")}
       footer={
         <>
-          <Button onClick={onClose}>{t("cancel")}</Button>
+          <Button onClick={close}>{t("cancel")}</Button>
           <Button
             variant="primary"
             loading={save.isPending}
             onClick={() =>
               save.mutate(
-                { kind, body: values },
+                { kind, body: configPatch(values, touched) },
                 {
                   onSuccess: () => {
                     toast({ title: t("saved"), tone: "success" });
-                    setValues({});
-                    onClose();
+                    close();
                   },
                 },
               )
@@ -171,9 +182,20 @@ function IntegrationDialog({ kind, onClose }: { kind: IntegrationKind | null; on
     >
       <div className="flex flex-col gap-3">
         {fields.map((f) => (
-          <Field key={f.name} label={f.name.replace(/_/g, " ")}>
+          <Field key={f.name} label={f.optional ? `${label(f.name)} (${t("fields.optional")})` : label(f.name)}>
             {({ id }) => (
-              <Input id={id} dir="ltr" type={f.secret ? "password" : "text"} autoComplete="off" value={values[f.name] ?? ""} onChange={(e) => setValues((v) => ({ ...v, [f.name]: e.target.value }))} />
+              <Input
+                id={id}
+                dir="ltr"
+                type={f.secret ? "password" : "text"}
+                inputMode={f.name.startsWith("price_") ? "decimal" : undefined}
+                autoComplete="off"
+                value={values[f.name] ?? ""}
+                onChange={(e) => {
+                  setValues((v) => ({ ...v, [f.name]: e.target.value }));
+                  setTouched((s) => new Set(s).add(f.name));
+                }}
+              />
             )}
           </Field>
         ))}

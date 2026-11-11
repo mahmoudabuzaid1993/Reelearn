@@ -55,6 +55,7 @@ pub struct ClaudeWriter {
     http: reqwest::Client,
     api_key: String,
     model: String,
+    meter: Meter,
 }
 
 impl ClaudeWriter {
@@ -63,7 +64,13 @@ impl ClaudeWriter {
             http,
             api_key,
             model,
+            meter: Meter::default(),
         }
+    }
+
+    pub fn with_meter(mut self, meter: Meter) -> ClaudeWriter {
+        self.meter = meter;
+        self
     }
 
     async fn ask(
@@ -89,6 +96,8 @@ impl ClaudeWriter {
             &body,
         )
         .await?;
+        self.meter
+            .record_tokens("ai_claude", "write", &self.model, &resp["usage"]);
         let text = resp["content"]
             .as_array()
             .and_then(|blocks| blocks.iter().find_map(|b| b["text"].as_str()))

@@ -220,6 +220,7 @@ pub async fn reel_admin(
         published_at: r.published_at,
         created_at: r.created_at,
         updated_at: r.updated_at,
+        quality: ReelQuality::from_review(r.ai_review.as_ref(), r.quality_score),
     })
 }
 
@@ -276,6 +277,7 @@ pub async fn reel_list_item(
         plays,
         awaiting,
         updated_at: r.updated_at,
+        quality: ReelQuality::from_review(r.ai_review.as_ref(), r.quality_score),
     })
 }
 

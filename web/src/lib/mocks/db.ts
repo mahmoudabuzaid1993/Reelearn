@@ -1,4 +1,5 @@
 import type { Assignment, AuditEntry, EngineSettings, Export, GenerationJob, Group, Integration, Moment, Reel, Source, Tenant, Topic, User } from "@/lib/api/types";
+import { freshAi, type MockAi } from "./fixtures/ai";
 import { enginePresets } from "./fixtures/engine";
 import { assignments, jobs, moments, reels, sources, topics } from "./fixtures/content";
 import { audit, exportsList, groups, integrations, tenant, users } from "./fixtures/tenant";
@@ -25,6 +26,7 @@ export interface MockDb {
   integrations: Integration[];
   audit: AuditEntry[];
   engine: EngineSettings;
+  ai: MockAi;
   challenges: Record<string, string>;
   onboarding: { topicsDone: boolean; deliveryDone: boolean };
 }
@@ -51,6 +53,7 @@ export function freshDb(): MockDb {
     integrations,
     audit,
     engine: enginePresets.balanced!,
+    ai: freshAi(),
     challenges: {},
     onboarding: { topicsDone: true, deliveryDone: true },
   });
@@ -60,7 +63,12 @@ function load(): MockDb {
   if (typeof window === "undefined") return freshDb();
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as MockDb;
+    if (raw) {
+      const stored = JSON.parse(raw) as MockDb;
+      // Copies saved before the AI layer existed.
+      stored.ai ??= freshAi();
+      return stored;
+    }
   } catch {
     // fall through to a fresh copy
   }

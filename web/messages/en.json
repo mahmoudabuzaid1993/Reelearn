@@ -39,7 +39,8 @@
     "reports": "Reports",
     "engine": "Learning engine",
     "settings": "Settings",
-    "audit": "Audit"
+    "audit": "Audit",
+    "platform": "Platform"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -158,7 +159,8 @@
       "integrations": "Integrations",
       "delivery": "Delivery",
       "residency": "Residency",
-      "credits": "Credits"
+      "credits": "Credits",
+      "ai": "AI"
     },
     "groups": {
       "identity": "Identity and HR",
@@ -178,7 +180,8 @@
       "ai_veo": "Veo (motion scenes)",
       "voice": "Voice (narration and dubbing)",
       "asr": "Transcription",
-      "storage": "Object storage"
+      "storage": "Object storage",
+      "ai_typesafe": "TypeSafe Jev (quality check and role matching)"
     },
     "status": {
       "connected": "Connected",
@@ -258,6 +261,19 @@
       "ramadanAwareHint": "Shift windows automatically during Ramadan",
       "weekend": "Weekend days",
       "save": "Save delivery settings"
+    },
+    "fields": {
+      "api_key": "API key",
+      "model": "Model",
+      "base_url": "Endpoint URL",
+      "provider": "Vendor",
+      "default_voice": "Default voice",
+      "phone_number_id": "Phone number ID",
+      "access_token": "Access token",
+      "price_input_per_mtok": "Price per million input tokens (USD)",
+      "price_output_per_mtok": "Price per million output tokens (USD)",
+      "price_per_call": "Price per call (USD)",
+      "optional": "optional"
     }
   },
   "audit": {
@@ -1111,5 +1127,177 @@
       "noData": "No data in this period.",
       "privacy": "Interest and engagement signals are used only to choose reels. They never appear in readiness, in manager views or in performance reviews, and each person can see and download them."
     }
+  },
+  "ai": {
+    "routing": {
+      "title": "Who does what",
+      "hint": "Writers draft scripts, questions and translations. TypeSafe Jev checks each draft and never writes.",
+      "writer": "Writer",
+      "writers": {
+        "auto": "Automatic: Meta Muse, else Claude",
+        "claude": "Claude",
+        "muse": "Meta Muse"
+      },
+      "qualityCheck": "Check every new draft with TypeSafe Jev",
+      "qualityCheckHint": "Grounded in the source, on topic, safe for work, clear, a strong opening, a correct answer key. Reviewers see the score; people still approve every reel.",
+      "threshold": "Flag drafts scoring below",
+      "thresholdHint": "Flagged drafts get a \"needs a careful look\" note for reviewers.",
+      "roleMatching": "Match reels to job titles",
+      "roleMatchingHint": "Jev judges how relevant each published reel is to each job title. New people start from their role; their own choices take over within a few weeks.",
+      "tagCheck": "Connect new reels to your existing subjects",
+      "tagCheckHint": "Jev keeps the writer's subject tags it agrees with and adds your company's tags that fit, so related reels find each other.",
+      "save": "Save",
+      "saved": "AI settings saved"
+    },
+    "access": {
+      "title": "Providers and keys",
+      "hint": "Your own key is always used first. Without one, Reelearn's key is used if your plan includes it.",
+      "states": {
+        "company": "Your key",
+        "platform": "Reelearn's key",
+        "not_in_plan": "Not in your plan",
+        "budget_reached": "Monthly budget used",
+        "not_configured": "Not set up"
+      },
+      "addKey": "Add your key",
+      "manageKey": "Manage your key",
+      "model": "Model {model}"
+    },
+    "plan": {
+      "title": "Your AI plan",
+      "platformKeys": "Reelearn's keys included",
+      "noPlatformKeys": "Bring your own keys",
+      "budget": "{spent} of {budget} this month",
+      "unlimited": "{spent} this month, no monthly limit",
+      "allowedAll": "All providers",
+      "allowedSome": "Included: {list}"
+    },
+    "usage": {
+      "title": "Usage",
+      "hint": "Every AI call, by provider and whose key paid. Costs show once a price is set for the provider.",
+      "month": "Month",
+      "calls": "Calls",
+      "platformBill": "On Reelearn's key",
+      "companyCost": "On your keys",
+      "failed": "Failed",
+      "provider": "Provider",
+      "capability": "Work",
+      "source": "Key",
+      "tokens": "Tokens in / out",
+      "units": "Units",
+      "cost": "Cost",
+      "empty": "No AI usage this month.",
+      "daily": "Calls per day",
+      "dailyTable": "Calls and cost per day",
+      "capabilities": {
+        "write": "Writing",
+        "judge": "Checking",
+        "render": "Video",
+        "voice": "Voice",
+        "transcribe": "Transcription"
+      },
+      "sources": {
+        "company": "Your key",
+        "platform": "Reelearn's key"
+      }
+    },
+    "providers": {
+      "ai_muse": "Meta Muse",
+      "ai_claude": "Claude",
+      "ai_typesafe": "TypeSafe Jev",
+      "ai_higgsfield": "Video vendor",
+      "voice": "Voice vendor",
+      "asr": "Transcription vendor",
+      "whatsapp": "WhatsApp Business"
+    },
+    "roles": {
+      "ai_muse": "Writes, transcribes, makes keyframes",
+      "ai_claude": "Writes",
+      "ai_typesafe": "Checks drafts, tags, matches roles",
+      "ai_higgsfield": "Avatar and motion video",
+      "voice": "Narration and dubbing",
+      "asr": "Transcripts",
+      "whatsapp": "Daily minute and reminders"
+    }
+  },
+  "quality": {
+    "label": "AI check",
+    "score": "{score}/100",
+    "needsAttention": "Needs a careful look",
+    "passed": "Looks good",
+    "unavailable": "Check unavailable",
+    "title": "TypeSafe Jev check",
+    "hint": "Advisory. A person still approves every reel.",
+    "flags": {
+      "not_grounded": "Says something the source doesn't",
+      "off_topic": "Off topic",
+      "unsafe_content": "Not suitable for work",
+      "caption_mismatch": "Caption doesn't match",
+      "unclear": "Hard to follow",
+      "weak_hook": "Weak opening",
+      "answer_key_wrong": "Answer key looks wrong",
+      "ambiguous_question": "More than one answer could be right",
+      "weak_distractors": "Wrong options are too easy"
+    },
+    "noFlags": "No problems found.",
+    "checkedAt": "Checked {at}"
+  },
+  "platform": {
+    "title": "Platform",
+    "subtitle": "Reelearn's own provider keys and prices, each company's AI plan, and the monthly invoice export.",
+    "tabs": {
+      "providers": "Platform keys",
+      "companies": "Companies"
+    },
+    "providers": {
+      "title": "Platform keys",
+      "hint": "Used by companies without their own key, if their plan includes it. Prices turn usage into cost.",
+      "source": {
+        "console": "Set here",
+        "environment": "From the server environment"
+      },
+      "configure": "Configure",
+      "test": "Test",
+      "testOk": "Connection works",
+      "testFailed": "Connection failed",
+      "saved": "Platform key saved",
+      "dialogTitle": "Platform key: {kind}",
+      "dialogHint": "Secrets are stored encrypted and never shown again. Leave a field empty to keep it.",
+      "prices": "Prices"
+    },
+    "companies": {
+      "title": "Companies",
+      "hint": "Usage this month by whose key paid. Billable is platform-key cost plus the plan's markup.",
+      "company": "Company",
+      "plan": "Plan",
+      "calls": "Calls",
+      "platformCost": "Platform cost",
+      "billable": "Billable",
+      "companyCost": "Own-key cost",
+      "budget": "Budget",
+      "unlimited": "No limit",
+      "noPlatformKeys": "Own keys only",
+      "edit": "Edit plan",
+      "export": "Download invoice lines (CSV)",
+      "unpriced": "{n} calls without a price",
+      "empty": "No companies yet."
+    },
+    "planDialog": {
+      "title": "AI plan: {name}",
+      "platformKeys": "May use Reelearn's keys",
+      "platformKeysHint": "When off, the company must add its own keys.",
+      "budget": "Monthly budget (USD)",
+      "budgetHint": "Billed platform-key spend per month. Leave empty for no limit.",
+      "markup": "Markup on platform-key cost (%)",
+      "markupHint": "0 to 500.",
+      "allowed": "Providers on Reelearn's keys",
+      "allowedHint": "None ticked means all.",
+      "saved": "Plan saved",
+      "errors": {
+        "budget": "Enter zero or more, or leave empty.",
+        "markup": "Enter 0 to 500."
+      }
+    },
+    "forbidden": "This page is for the people who run Reelearn."
   }
 }

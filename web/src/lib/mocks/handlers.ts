@@ -11,9 +11,10 @@ import { toListItem } from "./fixtures/content";
 import { dashboard, hrisSyncLog, reportOverview, reportsByGroup, reportsByTopic } from "./fixtures/tenant";
 import { transcript } from "./fixtures/content";
 import { createJob, materializeJob, retryJob } from "./jobs";
+import { overview, platformIntegrations, PROVIDERS, tenantsAi, usage } from "./fixtures/ai";
 import { engineInsights, enginePresets } from "./fixtures/engine";
 import { changedFields, labelFor, NUMBER_RANGES, PRESETS, WEIGHT_RANGES, type NumberKey, type WeightKey } from "@/features/engine/logic/engine";
-import type { EngineSettings } from "@/lib/api/types";
+import type { AiPlan, AiRouting, EngineSettings } from "@/lib/api/types";
 
 const BASE = apiBaseUrl();
 const url = (path: string) => `${BASE}${path}`;
@@ -612,6 +613,65 @@ export const handlers = [
 
   // ---------------------------------------------------------------- settings
   http.get(url("/admin/integrations"), authed(() => HttpResponse.json(db.integrations))),
+  // ---------------------------------------------------------------- AI providers
+  http.get(url("/admin/ai"), authed(() => HttpResponse.json(overview(db.ai)))),
+  http.put(url("/admin/ai"), authed(async ({ request }) => {
+    const body = (await request.json()) as AiRouting;
+    if (body.review_threshold !== undefined && (body.review_threshold < 0 || body.review_threshold > 100)) {
+      return problem(422, "review_threshold must be 0 to 100");
+    }
+    db.ai.routing = { ...db.ai.routing, ...body };
+    record({ actor: null, action: "ai.routing.update", entity: "tenant", entity_id: null, diff: body as never });
+    persist();
+    return HttpResponse.json(overview(db.ai));
+  })),
+  http.get(url("/admin/ai/usage"), authed(({ request }) => {
+    const month = new URL(request.url).searchParams.get("month") ?? new Date().toISOString().slice(0, 7);
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return problem(422, "month must be YYYY-MM");
+    return HttpResponse.json(usage(month, db.ai));
+  })),
+  http.get(url("/platform/me"), authed(() => HttpResponse.json({ operator: true }))),
+  http.get(url("/platform/integrations"), authed(() => HttpResponse.json(platformIntegrations(db.ai)))),
+  http.put(url("/platform/integrations/:kind"), authed(async ({ params, request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    const kind = String(params.kind);
+    const next = { ...(db.ai.platform[kind] ?? {}) };
+    for (const [k, v] of Object.entries(body)) {
+      if (v === null) delete next[k];
+      else next[k] = /key|token|secret/i.test(k) ? "••••" : v;
+    }
+    db.ai.platform[kind] = next;
+    persist();
+    return HttpResponse.json(platformIntegrations(db.ai));
+  })),
+  http.post(url("/platform/integrations/:kind/test"), authed(({ params }) => {
+    const ok = platformIntegrations(db.ai).find((r) => r.kind === params.kind)?.status === "connected";
+    return HttpResponse.json({ ok, message: ok ? "credentials present and accepted" : "credentials missing" });
+  })),
+  http.get(url("/platform/tenants"), authed(({ request }) => {
+    const month = new URL(request.url).searchParams.get("month") ?? new Date().toISOString().slice(0, 7);
+    const u = usage(month, db.ai);
+    return HttpResponse.json({ from: u.from, to: u.to, tenants: tenantsAi(db.ai, db.tenant.name) });
+  })),
+  http.put(url("/platform/tenants/:tenantId/ai-plan"), authed(async ({ params, request }) => {
+    const plan = (await request.json()) as AiPlan;
+    if ((plan.markup_pct ?? 0) < 0 || (plan.markup_pct ?? 0) > 500) return problem(422, "markup_pct must be between 0 and 500");
+    if (plan.monthly_budget_usd !== null && plan.monthly_budget_usd !== undefined && plan.monthly_budget_usd < 0) return problem(422, "monthly_budget_usd must be zero or more");
+    if (params.tenantId === db.tenant.id) db.ai.plan = { platform_keys: true, monthly_budget_usd: null, markup_pct: 0, allowed: [], ...plan };
+    persist();
+    return HttpResponse.json(plan);
+  })),
+  http.get(url("/platform/usage.csv"), authed(({ request }) => {
+    const month = new URL(request.url).searchParams.get("month") ?? new Date().toISOString().slice(0, 7);
+    const u = usage(month, db.ai);
+    const rows = ["company,provider,capability,key_source,model,calls,input_tokens,output_tokens,units,cost_usd,markup_pct,billable_usd,unpriced_calls"];
+    for (const l of u.lines) {
+      const platform = l.key_source === "platform";
+      const markup = db.ai.plan.markup_pct ?? 0;
+      rows.push(["alwadi", l.provider, l.capability, l.key_source, "", l.calls, l.input_tokens, l.output_tokens, l.units, (l.cost_usd ?? 0).toFixed(6), platform ? markup : "", platform ? ((l.cost_usd ?? 0) * (1 + markup / 100)).toFixed(6) : "0", 0].join(","));
+    }
+    return new HttpResponse(rows.join("\n") + "\n", { headers: { "Content-Type": "text/csv; charset=utf-8" } });
+  })),
   http.get(url("/admin/engine"), authed(() => HttpResponse.json({ settings: db.engine ?? enginePresets.balanced, presets: enginePresets }))),
   http.put(url("/admin/engine"), authed(async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>;
@@ -648,6 +708,12 @@ export const handlers = [
   http.put(url("/admin/integrations/:kind"), authed(async ({ params, request }) => {
     const body = (await request.json()) as Record<string, unknown>;
     const publicConfig = Object.fromEntries(Object.entries(body).filter(([k]) => !/secret|token|key|password/i.test(k)));
+    const kind = String(params.kind);
+    if ((PROVIDERS as readonly string[]).includes(kind)) {
+      const secret = body.api_key ?? body.access_token;
+      if (typeof secret === "string" && secret) db.ai.companyKeys = [...new Set([...db.ai.companyKeys, kind])];
+      if (secret === null) db.ai.companyKeys = db.ai.companyKeys.filter((k) => k !== kind);
+    }
     const existing = db.integrations.find((i) => i.kind === params.kind);
     const next = { kind: params.kind as never, status: "connected" as const, last_sync_at: null, last_error: null, public_config: { ...(existing?.public_config ?? {}), ...publicConfig } };
     if (existing) Object.assign(existing, next);

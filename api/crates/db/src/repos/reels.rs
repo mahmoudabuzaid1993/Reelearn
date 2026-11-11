@@ -32,6 +32,9 @@ pub struct ReelRow {
     pub archived_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    /// TypeSafe Jev's check of the draft (advisory), and the score derived from it.
+    pub ai_review: Option<serde_json::Value>,
+    pub quality_score: Option<i16>,
 }
 
 impl ReelRow {
@@ -43,7 +46,7 @@ impl ReelRow {
     }
 }
 
-const COLS: &str = "r.id, r.tenant_id, r.topic_id, r.source_id, r.generation_job_id, r.kind, r.status, r.title, r.language, r.script, r.source_citation, r.presenter, r.video_key, r.thumbnail_key, r.captions_key, r.duration_ms, r.version, r.compliance_tag, r.consent_confirmed, r.created_by, r.published_at, r.archived_at, r.created_at, r.updated_at";
+const COLS: &str = "r.id, r.tenant_id, r.topic_id, r.source_id, r.generation_job_id, r.kind, r.status, r.title, r.language, r.script, r.source_citation, r.presenter, r.video_key, r.thumbnail_key, r.captions_key, r.duration_ms, r.version, r.compliance_tag, r.consent_confirmed, r.created_by, r.published_at, r.archived_at, r.created_at, r.updated_at, r.ai_review, r.quality_score";
 
 pub async fn get(conn: &mut PgConnection, id: Uuid) -> Result<ReelRow, DbError> {
     find(conn, id).await?.ok_or(DbError::NotFound("reel"))

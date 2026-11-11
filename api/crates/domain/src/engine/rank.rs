@@ -115,6 +115,8 @@ pub struct RankCandidate {
     pub completed_before: bool,
     /// Name of the colleague who sent it, when it arrived as a share.
     pub shared_by: Option<String>,
+    /// 0..1: how relevant TypeSafe Jev judged the reel to the person's job title.
+    pub role_fit: Option<f32>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -126,7 +128,14 @@ pub struct UserProfile {
     pub tag_interest: HashMap<String, f32>,
     pub answers: u32,
     pub answers_correct: u32,
+    /// How many interest signals the person has given in total (topics).
+    pub signals: u32,
 }
+
+/// Interest points the job-title prior is worth for someone with no signals yet (a completion is 1).
+pub const ROLE_PRIOR: f32 = 3.0;
+/// After this many of the person's own signals the job-title prior has faded out.
+pub const ROLE_PRIOR_FADE: f32 = 25.0;
 
 impl UserProfile {
     /// Topic interest plus half the mean interest of the reel's known tags.
@@ -142,7 +151,19 @@ impl UserProfile {
         } else {
             tags.iter().sum::<f32>() / tags.len() as f32
         };
-        topic + 0.5 * tag
+        topic + 0.5 * tag + self.role_prior(c)
+    }
+
+    /// A starting point from the job title, centred on 0 and fading as the person's own
+    /// signals arrive: what they do outweighs what their role suggests.
+    pub fn role_prior(&self, c: &RankCandidate) -> f32 {
+        match c.role_fit {
+            Some(fit) => {
+                let fade = 1.0 - (self.signals as f32 / ROLE_PRIOR_FADE).min(1.0);
+                (fit.clamp(0.0, 1.0) - 0.5) * 2.0 * ROLE_PRIOR * fade
+            }
+            None => 0.0,
+        }
     }
 
     /// The person's answer rate, pulled toward 70 % until there is evidence.
@@ -530,6 +551,7 @@ mod tests {
             cohort_popularity: 0.0,
             completed_before: false,
             shared_by: None,
+            role_fit: None,
         }
     }
 
@@ -748,5 +770,23 @@ mod tests {
         let mut seen = cand(3, 10);
         seen.completed_before = true;
         assert!(score(&seen, &user, &c).0.total() < score(&cand(4, 10), &user, &c).0.total());
+    }
+
+    #[test]
+    fn role_fit_is_a_prior_that_fades_with_own_signals() {
+        let mut c = cand(1, 1);
+        c.role_fit = Some(1.0);
+        let mut u = UserProfile::default();
+        assert!((u.role_prior(&c) - ROLE_PRIOR).abs() < 1e-6);
+        c.role_fit = Some(0.0);
+        assert!((u.role_prior(&c) + ROLE_PRIOR).abs() < 1e-6);
+        c.role_fit = Some(0.5);
+        assert_eq!(u.role_prior(&c), 0.0);
+        c.role_fit = Some(1.0);
+        u.signals = 25;
+        assert_eq!(u.role_prior(&c), 0.0);
+        c.role_fit = None;
+        u.signals = 0;
+        assert_eq!(u.role_prior(&c), 0.0);
     }
 }

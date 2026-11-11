@@ -1,4 +1,5 @@
-//! `reelearn-api`: HTTP server. `reelearn-api seed` loads the demo tenant, `reelearn-api migrate` only migrates.
+//! `reelearn-api`: HTTP server. `reelearn-api seed` loads the demo tenant, `reelearn-api migrate` only migrates,
+//! `reelearn-api grant-platform-operator <email>` lets someone run the platform area.
 
 use reelearn_api::{build_router, AppState, Config};
 use std::net::SocketAddr;
@@ -29,6 +30,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let state = AppState::connect(config).await?;
             let summary = reelearn_api::seed::seed_demo(&state).await?;
             println!("{summary}");
+            return Ok(());
+        }
+        Some("grant-platform-operator") => {
+            // `reelearn-api grant-platform-operator <email>`: the people who run the platform.
+            let email = args
+                .get(2)
+                .ok_or("usage: reelearn-api grant-platform-operator <email>")?;
+            let state = AppState::connect(config).await?;
+            let mut tx = state.db.admin_tx().await?;
+            let user = reelearn_db::repos::users::find_by_email(&mut tx, email)
+                .await?
+                .ok_or("no user with that email")?;
+            reelearn_db::repos::ai::grant_platform_operator_admin(&mut tx, user.id).await?;
+            tx.commit().await?;
+            println!("{email} can now open the platform area");
             return Ok(());
         }
         Some("migrate") => {

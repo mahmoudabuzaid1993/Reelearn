@@ -78,6 +78,18 @@ Design consequences:
 
 All of them are tenant-scoped with the same FORCE row-level security policy. Design: [engine.md](engine.md).
 
+### AI providers and the platform layer (migration 0005)
+
+- `integration_kind_t` gains `ai_typesafe` (TypeSafe Jev).
+- `platform_operators`: the people who run the platform; not tenant-scoped and revoked from the app role.
+- `platform_integrations`: the platform's own keys, models and prices per provider kind (AES-GCM encrypted JSON); not tenant-scoped, revoked from the app role.
+- `tenants.ai_plan`: the company's AI plan set by the platform (platform keys allowed, monthly budget, markup, allowed providers).
+- `ai_usage`: one row per billable call with whose key paid, tokens, units and cost; monthly partitions.
+- `reels.ai_review` and `reels.quality_score`: TypeSafe Jev's advisory check of a draft.
+- `reel_role_fit`: how relevant a published reel is to a job title, a prior for new people.
+
+Design: [ai-providers.md](ai-providers.md).
+
 ## 3. Indexes, each with its reason
 
 Format: `table (columns) [type/partial]` — pattern it serves.
@@ -133,6 +145,11 @@ Format: `table (columns) [type/partial]` — pattern it serves.
 - `integrations (tenant_id, kind)` unique.
 - `exports (tenant_id, created_at desc)`.
 
+**AI providers**
+- `ai_usage (tenant_id, at desc)` — the company's usage screen; `(tenant_id, key_source, at)` — this month's platform-key spend for the budget check on every job; BRIN `(at)` — the cross-company invoice export scans a month.
+- `reels (tenant_id, status, quality_score)` — review queue ordered by the quality check.
+- `reel_role_fit` PK `(tenant_id, role_key, reel_id)` — one lookup per ranking call for the person's job title; `(reel_id)` for cascades.
+
 ## 4. What is deliberately not indexed
 
 - `reels.script` by B-tree, `users.full_name` by B-tree: searched through the GIN / trigram index instead.
@@ -141,7 +158,7 @@ Format: `table (columns) [type/partial]` — pattern it serves.
 
 ## 5. Partitioning and retention
 
-- `watch_events`, `answers`, `deliveries`, `audit_log`: `PARTITION BY RANGE` on the time column, monthly. A `maintain_partitions` job creates next month's partition and the default partition catches stragglers.
+- `watch_events`, `answers`, `deliveries`, `audit_log`, `engagement_events`, `ai_usage`: `PARTITION BY RANGE` on the time column, monthly. A `maintain_partitions` job creates next month's partition and the default partition catches stragglers.
 - Retention is per tenant in `tenants.settings.retention_months` (default 36 for HRDF evidence). Expired partitions are detached and archived to object storage before drop.
 
 ## 6. Integrity rules enforced in the database

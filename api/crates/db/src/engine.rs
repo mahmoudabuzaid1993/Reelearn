@@ -25,6 +25,7 @@ fn u(v: i32) -> u32 {
 pub fn candidate_from(
     row: &FeatureRow,
     cohort: &HashMap<Uuid, f32>,
+    role_fit: &HashMap<Uuid, f32>,
     shared_by: Option<String>,
 ) -> RankCandidate {
     RankCandidate {
@@ -54,6 +55,7 @@ pub fn candidate_from(
         cohort_popularity: cohort.get(&row.reel_id).copied().unwrap_or(0.0),
         completed_before: row.completed_before,
         shared_by,
+        role_fit: role_fit.get(&row.reel_id).copied(),
     }
 }
 
@@ -69,6 +71,7 @@ pub async fn profile(
     for t in repo::topic_interest(&mut *conn, user_id).await? {
         p.topic_interest
             .insert(t.topic_id, decayed(t.score, t.last_event_at, now, hl));
+        p.signals = p.signals.saturating_add(u(t.events));
         if let Some(pref) = t.preference.as_deref().and_then(Preference::parse) {
             p.topic_preference.insert(t.topic_id, pref);
         }
@@ -154,9 +157,21 @@ pub async fn load(
     } else {
         HashMap::new()
     };
+    // The job-title prior is personalisation too: off when the person switched it off.
+    let role_fit: HashMap<Uuid, f32> = match user
+        .job_title
+        .as_deref()
+        .and_then(reelearn_domain::ai::role_key)
+    {
+        Some(key) if user.personalized => crate::repos::ai::role_fit(&mut *conn, &key)
+            .await?
+            .into_iter()
+            .collect(),
+        _ => HashMap::new(),
+    };
     let candidates = rows
         .iter()
-        .map(|r| candidate_from(r, &cohort, inbox.get(&r.reel_id).cloned()))
+        .map(|r| candidate_from(r, &cohort, &role_fit, inbox.get(&r.reel_id).cloned()))
         .collect();
     let mut profile = profile(&mut *conn, user.id, settings, now).await?;
     if !user.personalized {

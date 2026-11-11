@@ -51,3 +51,11 @@ export type Intensity = EngineSettings["intensity"];
 export type Quote =
   paths["/admin/generation-jobs/quote"]["post"]["responses"]["200"]["content"]["application/json"];
 export type Page<T> = { items: T[]; next_cursor?: string | null };
+export type ReelQuality = Schemas["ReelQuality"];
+export type AiRouting = Schemas["AiRouting"];
+export type AiOverview = Schemas["AiOverview"];
+export type ProviderAccess = Schemas["ProviderAccess"];
+export type AiUsage = Schemas["AiUsage"];
+export type AiPlan = Schemas["AiPlan"];
+export type PlatformIntegration = Schemas["PlatformIntegration"];
+export type TenantAi = Schemas["TenantAi"];

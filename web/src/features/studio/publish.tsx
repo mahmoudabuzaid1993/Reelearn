@@ -1,5 +1,6 @@
 "use client";
 
+import { QualityCard } from "@/features/ai/quality-badge";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -121,6 +122,8 @@ function PublishForm({ reel }: { reel: Reel }) {
               ) : null}
             </CardBody>
           </Card>
+
+          <QualityCard quality={reel.quality} />
 
           <Card>
             <CardHeader title={t("audience")} description={t("audienceHint")} />

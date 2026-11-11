@@ -2,6 +2,7 @@
 //! Every function takes a `&mut PgConnection` obtained from [`crate::TenantTx::conn`]
 //! (tenant rows) or from [`crate::Db::admin_tx`] (cross-tenant lookups, explicitly named `*_admin`).
 
+pub mod ai;
 pub mod audit;
 pub mod auth;
 pub mod deliveries;

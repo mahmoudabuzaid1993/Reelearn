@@ -79,6 +79,10 @@ What managers and HR can see is a data rule, not a UI rule: endpoints under `/ma
 
 Practice ("keep going" after the minute) and the order of new reels in the daily plan come from the learning engine. It works like a short-video recommender: signals, smoothed predictions, a weighted value model with negatives subtracted, then re-ranking for colleague shares, exploration, topic diversity and reviews. Each company tunes its intensity from Gentle to Maximum, within guardrails that stay on. See [engine.md](engine.md).
 
+## 5b. AI providers and the platform layer
+
+Each job resolves its company's keys (own key, else the platform's within the company's AI plan and budget) and runs with those adapters; every call is metered to `ai_usage` with whose key paid. Meta Muse or Claude write, TypeSafe Jev judges drafts and job-title relevance. Platform operators (a table, not a company role) manage platform keys, prices, plans and the invoice export under `/platform`. See [ai-providers.md](ai-providers.md).
+
 ## 6. Scalability notes
 
 - API is stateless; scale horizontally behind a load balancer. One replica handles roughly 2–3k req/s of cached reads on 2 vCPU.

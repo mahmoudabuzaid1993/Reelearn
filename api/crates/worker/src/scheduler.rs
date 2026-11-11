@@ -162,6 +162,7 @@ pub async fn maintain_partitions(ctx: &Ctx) -> Result<JobOutcome, JobError> {
         "deliveries",
         "audit_log",
         "engagement_events",
+        "ai_usage",
     ] {
         for month in [today, next] {
             sqlx::query("SELECT ensure_month_partition($1, $2)")

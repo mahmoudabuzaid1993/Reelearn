@@ -5,7 +5,9 @@
 //! result is either `Ready` (bytes the worker stores) or `Pending` (a provider
 //! reference that a later `provider_callback` job completes).
 
+pub mod blocked;
 pub mod fake;
+pub mod jev;
 pub mod muse;
 pub mod real;
 
@@ -249,7 +251,111 @@ pub trait WhatsAppSender: Send + Sync {
     ) -> Result<String, ProviderError>;
 }
 
-/// The set of providers a worker runs with.
+// ------------------------------------------------------------------ judging (TypeSafe Jev)
+
+/// One draft as Jev sees it: the script, its source and its question.
+#[derive(Debug, Clone)]
+pub struct DraftInput {
+    pub title: String,
+    pub topic: String,
+    pub language: String,
+    pub script: String,
+    pub caption_line: Option<String>,
+    /// The part of the source the script was written from (truncated by the caller).
+    pub source_excerpt: String,
+    pub question: Option<QuestionDraft>,
+    /// Tags to judge: the writer's plus the company's vocabulary.
+    pub tag_candidates: Vec<String>,
+}
+
+/// A published reel, for job-title relevance.
+#[derive(Debug, Clone)]
+pub struct RoleReel {
+    pub title: String,
+    pub topic: String,
+    pub tags: Vec<String>,
+    pub excerpt: String,
+}
+
+#[async_trait]
+pub trait Judge: Send + Sync {
+    fn name(&self) -> &'static str;
+    async fn review_draft(
+        &self,
+        input: &DraftInput,
+    ) -> Result<reelearn_domain::ai::DraftAnswers, ProviderError>;
+    /// P(someone working as `role` would use what each reel teaches), in input order.
+    async fn role_fit(&self, role: &str, reels: &[RoleReel]) -> Result<Vec<f32>, ProviderError>;
+}
+
+// ------------------------------------------------------------------ metering
+
+/// One billable provider call, recorded by the adapter that made it.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct UsageEvent {
+    /// Integration kind: ai_claude, ai_muse, ai_typesafe, ai_higgsfield, voice, asr.
+    pub provider: &'static str,
+    /// write | judge | render | voice | transcribe
+    pub capability: &'static str,
+    pub model: Option<String>,
+    pub input_tokens: u64,
+    pub output_tokens: u64,
+    pub units: u32,
+    pub ok: bool,
+}
+
+/// Collects usage while a job runs; the worker writes it to `ai_usage` afterwards, in its own
+/// transaction, so a failed step still accounts for what the vendor charged.
+#[derive(Clone, Default)]
+pub struct Meter(Option<Arc<std::sync::Mutex<Vec<UsageEvent>>>>);
+
+impl Meter {
+    pub fn recording() -> Meter {
+        Meter(Some(Arc::new(std::sync::Mutex::new(Vec::new()))))
+    }
+
+    pub fn record(&self, e: UsageEvent) {
+        if let Some(m) = &self.0 {
+            if let Ok(mut v) = m.lock() {
+                v.push(e);
+            }
+        }
+    }
+
+    /// Tokens from an Anthropic (`input_tokens`/`output_tokens`) or OpenAI-style
+    /// (`prompt_tokens`/`completion_tokens`) `usage` object.
+    pub fn record_tokens(
+        &self,
+        provider: &'static str,
+        capability: &'static str,
+        model: &str,
+        usage: &serde_json::Value,
+    ) {
+        let n = |a: &str, b: &str| usage[a].as_u64().or_else(|| usage[b].as_u64()).unwrap_or(0);
+        self.record(UsageEvent {
+            provider,
+            capability,
+            model: Some(model.to_string()),
+            input_tokens: n("input_tokens", "prompt_tokens"),
+            output_tokens: n("output_tokens", "completion_tokens"),
+            units: 1,
+            ok: true,
+        });
+    }
+
+    pub fn drain(&self) -> Vec<UsageEvent> {
+        match &self.0 {
+            Some(m) => m
+                .lock()
+                .map(|mut v| std::mem::take(&mut *v))
+                .unwrap_or_default(),
+            None => Vec::new(),
+        }
+    }
+}
+
+/// The set of providers a job runs with, plus who pays for each (`sources`, by integration kind)
+/// and the prices to cost them. Built per company by [`crate::Ctx::providers_for`].
 #[derive(Clone)]
 pub struct Providers {
     pub writer: Arc<dyn ScriptWriter>,
@@ -257,6 +363,19 @@ pub struct Providers {
     pub voice: Arc<dyn VoiceSynth>,
     pub asr: Arc<dyn Transcriber>,
     pub whatsapp: Arc<dyn WhatsAppSender>,
+    pub judge: Arc<dyn Judge>,
+    pub meter: Meter,
+    /// Integration kind behind each slot when it is a real vendor (for unit-billed calls).
+    pub slots: Slots,
+    pub sources: std::collections::HashMap<&'static str, reelearn_domain::ai::KeySource>,
+    pub prices: std::collections::HashMap<&'static str, reelearn_domain::ai::Prices>,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Slots {
+    pub video: Option<&'static str>,
+    pub voice: Option<&'static str>,
+    pub asr: Option<&'static str>,
 }
 
 impl Providers {
@@ -267,118 +386,177 @@ impl Providers {
             voice: Arc::new(fake::FakeVoice),
             asr: Arc::new(fake::FakeAsr),
             whatsapp: Arc::new(fake::FakeWhatsApp::default()),
+            judge: Arc::new(fake::FakeJudge),
+            meter: Meter::default(),
+            slots: Slots::default(),
+            sources: Default::default(),
+            prices: Default::default(),
         }
     }
 
-    /// Real adapters from the environment. Meta Model API (`MODEL_API_KEY`) is the default brain:
-    /// Muse Spark writes, Muse Voice Transcribe listens, Muse Image + ffmpeg render. Claude, a video
-    /// vendor, a voice vendor or an ASR vendor take over their slot when their own keys are set
-    /// (`WRITER_PROVIDER=claude|muse` picks the writer explicitly). Anything unconfigured stays fake.
-    pub fn from_env(http: reqwest::Client) -> Providers {
-        let env = |k: &str| std::env::var(k).ok().filter(|v| !v.trim().is_empty());
-        let muse_key = env("MODEL_API_KEY");
-        let muse_base = env("MUSE_BASE_URL").unwrap_or_else(|| muse::DEFAULT_BASE_URL.into());
-        let writer_pref = env("WRITER_PROVIDER").unwrap_or_default();
-        let writer: Arc<dyn ScriptWriter> =
-            match (writer_pref.as_str(), &muse_key, env("ANTHROPIC_API_KEY")) {
-                ("claude", _, Some(key)) => Arc::new(real::ClaudeWriter::new(
-                    http.clone(),
-                    key,
-                    env("CLAUDE_MODEL").unwrap_or_else(|| "claude-sonnet-5-5".into()),
-                )),
-                (_, Some(key), _) if writer_pref != "claude" => Arc::new(muse::MuseWriter::new(
-                    http.clone(),
-                    key.clone(),
-                    muse_base.clone(),
-                    env("MUSE_MODEL").unwrap_or_else(|| muse::DEFAULT_MODEL.into()),
-                )),
-                (_, None, Some(key)) => Arc::new(real::ClaudeWriter::new(
-                    http.clone(),
-                    key,
-                    env("CLAUDE_MODEL").unwrap_or_else(|| "claude-sonnet-5-5".into()),
-                )),
-                _ => Arc::new(fake::FakeWriter),
-            };
-        let video: Arc<dyn VideoRenderer> =
-            match (env("VIDEO_API_URL"), env("VIDEO_API_KEY"), &muse_key) {
-                (Some(url), Some(key), _) => Arc::new(real::HttpRenderer::new(
-                    http.clone(),
-                    url,
-                    key,
-                    env("VIDEO_PROVIDER").unwrap_or_else(|| "higgsfield".into()),
-                )),
-                (_, _, Some(key)) => Arc::new(muse::MuseStillsRenderer::new(
-                    http.clone(),
-                    key.clone(),
-                    muse_base.clone(),
-                )),
-                _ => Arc::new(fake::FakeVideo),
-            };
-        let voice: Arc<dyn VoiceSynth> = match (env("VOICE_API_URL"), env("VOICE_API_KEY")) {
-            (Some(url), Some(key)) => Arc::new(real::HttpVoice::new(http.clone(), url, key)),
-            _ => Arc::new(fake::FakeVoice),
+    /// Real adapters for one company from its resolved keys. Muse writes unless the company
+    /// chose Claude (or only Claude has a key); a dedicated video, voice or ASR vendor takes over
+    /// its slot when it has a key; TypeSafe Jev judges. A provider kept off by the company's plan
+    /// or budget answers with that reason instead of silently falling back to placeholder output.
+    pub fn from_resolved(
+        http: reqwest::Client,
+        r: &reelearn_api::services::ai::ResolvedAi,
+    ) -> Providers {
+        use reelearn_api::services::ai::Credential;
+        use reelearn_domain::ai::WriterChoice;
+        let meter = Meter::recording();
+        let mut p = Providers::fake();
+        p.judge = Arc::new(blocked::Blocked::off("TypeSafe Jev is not set up"));
+        let used = |c: &Credential, p: &mut Providers| {
+            p.sources.insert(c.kind, c.source);
+            p.prices.insert(c.kind, c.prices);
         };
-        let asr: Arc<dyn Transcriber> = match (env("ASR_API_URL"), env("ASR_API_KEY"), &muse_key) {
-            (Some(url), Some(key), _) => {
-                Arc::new(real::HttpTranscriber::new(http.clone(), url, key))
+
+        let claude = r.get("ai_claude");
+        let muse = r.get("ai_muse");
+        let writer_cred = match r.routing.writer {
+            WriterChoice::Claude => claude.clone(),
+            WriterChoice::Muse => muse.clone(),
+            WriterChoice::Auto => match (&muse, &claude) {
+                (Ok(_), _) => muse.clone(),
+                (_, Ok(_)) => claude.clone(),
+                (Err(e), _) if e.blocks() => muse.clone(),
+                _ => claude.clone(),
+            },
+        };
+        match writer_cred {
+            Ok(c) => {
+                p.writer = match c.kind {
+                    "ai_claude" => Arc::new(
+                        real::ClaudeWriter::new(http.clone(), c.secret("api_key"), c.model.clone())
+                            .with_meter(meter.clone()),
+                    ),
+                    _ => Arc::new(
+                        muse::MuseWriter::new(
+                            http.clone(),
+                            c.secret("api_key"),
+                            c.base_url(muse::DEFAULT_BASE_URL),
+                            c.model.clone(),
+                        )
+                        .with_meter(meter.clone()),
+                    ),
+                };
+                used(&c, &mut p);
             }
-            (_, _, Some(key)) => Arc::new(muse::MuseTranscriber::new(
-                http.clone(),
-                key.clone(),
-                muse_base,
-            )),
-            _ => Arc::new(fake::FakeAsr),
-        };
-        let whatsapp: Arc<dyn WhatsAppSender> = match (
-            env("WHATSAPP_PHONE_NUMBER_ID"),
-            env("WHATSAPP_ACCESS_TOKEN"),
-        ) {
-            (Some(phone_id), Some(token)) => {
-                Arc::new(real::MetaWhatsApp::new(http, phone_id, token))
-            }
-            _ => Arc::new(fake::FakeWhatsApp::default()),
-        };
-        Providers {
-            writer,
-            video,
-            voice,
-            asr,
-            whatsapp,
+            Err(e) if e.blocks() => p.writer = Arc::new(blocked::Blocked::new(e.message)),
+            Err(_) => {}
         }
+
+        match (r.get("ai_higgsfield"), &muse) {
+            (Ok(c), _) => {
+                p.video = Arc::new(real::HttpRenderer::new(
+                    http.clone(),
+                    c.base_url(""),
+                    c.secret("api_key"),
+                    c.config_str("provider")
+                        .unwrap_or_else(|| "higgsfield".into()),
+                ));
+                p.slots.video = Some(c.kind);
+                used(&c, &mut p);
+            }
+            (_, Ok(c)) => {
+                p.video = Arc::new(muse::MuseStillsRenderer::new(
+                    http.clone(),
+                    c.secret("api_key"),
+                    c.base_url(muse::DEFAULT_BASE_URL),
+                ));
+                p.slots.video = Some(c.kind);
+                used(c, &mut p);
+            }
+            _ => {}
+        }
+        if let Ok(c) = r.get("voice") {
+            p.voice = Arc::new(real::HttpVoice::new(
+                http.clone(),
+                c.base_url(""),
+                c.secret("api_key"),
+            ));
+            p.slots.voice = Some(c.kind);
+            used(&c, &mut p);
+        }
+        match (r.get("asr"), &muse) {
+            (Ok(c), _) => {
+                p.asr = Arc::new(real::HttpTranscriber::new(
+                    http.clone(),
+                    c.base_url(""),
+                    c.secret("api_key"),
+                ));
+                p.slots.asr = Some(c.kind);
+                used(&c, &mut p);
+            }
+            (_, Ok(c)) => {
+                p.asr = Arc::new(muse::MuseTranscriber::new(
+                    http.clone(),
+                    c.secret("api_key"),
+                    c.base_url(muse::DEFAULT_BASE_URL),
+                ));
+                p.slots.asr = Some(c.kind);
+                used(c, &mut p);
+            }
+            _ => {}
+        }
+        if let Ok(c) = r.get("whatsapp") {
+            p.whatsapp = Arc::new(real::MetaWhatsApp::new(
+                http.clone(),
+                c.config_str("phone_number_id").unwrap_or_default(),
+                c.secret("access_token"),
+            ));
+        }
+        match r.get("ai_typesafe") {
+            Ok(c) => {
+                p.judge = Arc::new(
+                    jev::JevJudge::new(
+                        http,
+                        c.secret("api_key"),
+                        c.base_url(jev::DEFAULT_BASE_URL),
+                        c.model.clone(),
+                    )
+                    .with_meter(meter.clone()),
+                );
+                used(&c, &mut p);
+            }
+            Err(e) => p.judge = Arc::new(blocked::Blocked::off(e.message)),
+        }
+        p.meter = meter;
+        p
     }
 
     /// Everything Meta Model API can do, pointed at `base_url` (tests use a local mock server).
     pub fn muse(http: reqwest::Client, api_key: &str, base_url: &str) -> Providers {
-        Providers {
-            writer: Arc::new(muse::MuseWriter::new(
-                http.clone(),
-                api_key.into(),
-                base_url.into(),
-                muse::DEFAULT_MODEL.into(),
-            )),
-            video: Arc::new(muse::MuseStillsRenderer::new(
-                http.clone(),
-                api_key.into(),
-                base_url.into(),
-            )),
-            voice: Arc::new(fake::FakeVoice),
-            asr: Arc::new(muse::MuseTranscriber::new(
-                http,
-                api_key.into(),
-                base_url.into(),
-            )),
-            whatsapp: Arc::new(fake::FakeWhatsApp::default()),
-        }
+        let mut p = Providers::fake();
+        p.writer = Arc::new(muse::MuseWriter::new(
+            http.clone(),
+            api_key.into(),
+            base_url.into(),
+            muse::DEFAULT_MODEL.into(),
+        ));
+        p.video = Arc::new(muse::MuseStillsRenderer::new(
+            http.clone(),
+            api_key.into(),
+            base_url.into(),
+        ));
+        p.asr = Arc::new(muse::MuseTranscriber::new(
+            http,
+            api_key.into(),
+            base_url.into(),
+        ));
+        p
     }
 
     pub fn summary(&self) -> String {
         format!(
-            "writer={} video={} voice={} asr={} whatsapp={}",
+            "writer={} video={} voice={} asr={} whatsapp={} judge={}",
             self.writer.name(),
             self.video.name(),
             self.voice.name(),
             self.asr.name(),
-            self.whatsapp.name()
+            self.whatsapp.name(),
+            self.judge.name()
         )
     }
 }

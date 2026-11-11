@@ -1,4 +1,5 @@
 import type { Topic, Assignment, Source, Moment, GenerationJob, Reel, ReelListItem, Question } from "@/lib/api/types";
+import { QUALITY } from "./ai";
 import { IDS } from "./ids";
 import { groups } from "./tenant";
 
@@ -315,6 +316,7 @@ export const reels: Reel[] = [
     generation_job_id: IDS.jobs.done,
     kind: "ai_avatar",
     status: "in_review",
+    quality: QUALITY.good,
     title: "Greet within ten seconds",
     language: "en",
     script: "Ten seconds decides whether a customer feels seen. Eyes up, a nod, 'welcome'. You do not have to stop what you are doing; you have to show you noticed.",
@@ -345,6 +347,7 @@ export const reels: Reel[] = [
     generation_job_id: null,
     kind: "podcast_cut",
     status: "in_review",
+    quality: QUALITY.flagged,
     title: "Three points of contact on the ladder",
     language: "ar",
     script: "Three points of contact on the ladder, always. Two feet and a hand, or two hands and a foot. Never carry a box up with both hands.",
@@ -457,5 +460,6 @@ export function toListItem(reel: Reel, awaiting: string | null): ReelListItem {
     plays: reel.status === "published" ? 20 + reel.title.length : 0,
     awaiting,
     updated_at: reel.updated_at ?? reel.created_at,
+    quality: reel.quality ?? null,
   };
 }

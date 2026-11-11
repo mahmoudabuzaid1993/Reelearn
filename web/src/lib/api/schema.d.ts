@@ -3150,6 +3150,395 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/ai": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Which provider writes, the quality check, and whose key each provider uses */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Overview */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AiOverview"];
+                    };
+                };
+            };
+        };
+        /** Change the AI routing */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AiRouting"];
+                };
+            };
+            responses: {
+                /** @description Overview after the change */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AiOverview"];
+                    };
+                };
+                422: components["responses"]["Problem"];
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/ai/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Metered AI usage for a month, by provider, capability and whose key paid */
+        get: {
+            parameters: {
+                query?: {
+                    month?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Usage */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AiUsage"];
+                    };
+                };
+                422: components["responses"]["Problem"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether the signed-in person runs the platform */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Flag */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            operator: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/integrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The platform's provider keys (from the console or the server environment), secrets masked */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Providers */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlatformIntegration"][];
+                    };
+                };
+                403: components["responses"]["Problem"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/integrations/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set the platform's key, model, endpoint and prices for a provider (merged; null removes a field) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    kind: "ai_claude" | "ai_muse" | "ai_typesafe" | "ai_higgsfield" | "voice" | "asr" | "whatsapp";
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            responses: {
+                /** @description Providers after the change */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlatformIntegration"][];
+                    };
+                };
+                403: components["responses"]["Problem"];
+                422: components["responses"]["Problem"];
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/integrations/{kind}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    kind: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Result */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok?: boolean;
+                            message?: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/tenants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every company with its AI plan and the month's usage split by whose key paid */
+        get: {
+            parameters: {
+                query?: {
+                    month?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Companies */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: date-time */
+                            from: string;
+                            /** Format: date-time */
+                            to: string;
+                            tenants: components["schemas"]["TenantAi"][];
+                        };
+                    };
+                };
+                403: components["responses"]["Problem"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/tenants/{tenant_id}/ai-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set a company's AI plan (platform keys, monthly budget, markup, allowed providers) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tenant_id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AiPlan"];
+                };
+            };
+            responses: {
+                /** @description Plan */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AiPlan"];
+                    };
+                };
+                403: components["responses"]["Problem"];
+                422: components["responses"]["Problem"];
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/platform/usage.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Invoice lines for a month, one per company, provider, capability, key source and model */
+        get: {
+            parameters: {
+                query?: {
+                    month?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description CSV */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/csv": string;
+                    };
+                };
+                403: components["responses"]["Problem"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/engine": {
         parameters: {
             query?: never;
@@ -3579,7 +3968,7 @@ export interface components {
         /** @enum {string} */
         ReelStatus: "draft" | "in_review" | "approved" | "published" | "archived" | "rejected";
         /** @enum {string} */
-        IntegrationKind: "hris_jisr" | "hris_bayzat" | "sso_entra" | "whatsapp" | "teams" | "ai_muse" | "ai_claude" | "ai_higgsfield" | "ai_veo" | "voice" | "asr" | "storage";
+        IntegrationKind: "hris_jisr" | "hris_bayzat" | "sso_entra" | "whatsapp" | "teams" | "ai_muse" | "ai_claude" | "ai_typesafe" | "ai_higgsfield" | "ai_veo" | "voice" | "asr" | "storage";
         DeviceInfo: {
             device_id: string;
             /** @enum {string} */
@@ -3966,6 +4355,7 @@ export interface components {
             created_at: string;
             /** Format: date-time */
             updated_at?: string;
+            quality?: components["schemas"]["ReelQuality"] | null;
         };
         ReelListItem: {
             /** Format: uuid */
@@ -3989,6 +4379,124 @@ export interface components {
             awaiting?: string | null;
             /** Format: date-time */
             updated_at: string;
+            quality?: components["schemas"]["ReelQuality"] | null;
+        };
+        /** @description TypeSafe Jev's check of a draft. Advisory; people still approve every reel. */
+        ReelQuality: {
+            /** @enum {string} */
+            status: "checked" | "unavailable";
+            score?: number | null;
+            needs_attention: boolean;
+            flags: ("not_grounded" | "off_topic" | "unsafe_content" | "caption_mismatch" | "unclear" | "weak_hook" | "answer_key_wrong" | "ambiguous_question" | "weak_distractors")[];
+            judge?: string | null;
+            message?: string | null;
+            /** Format: date-time */
+            checked_at?: string | null;
+        };
+        AiRouting: {
+            /**
+             * @description auto: Meta Muse when it has a key, else Claude
+             * @enum {string}
+             */
+            writer?: "auto" | "claude" | "muse";
+            /** @description Run the TypeSafe Jev check on every new draft */
+            quality_check?: boolean;
+            /** @description Drafts scoring below this are flagged for reviewers */
+            review_threshold?: number;
+            /** @description Let Jev judge how relevant each reel is to each job title */
+            role_matching?: boolean;
+            /** @description Let Jev check the writer's subject tags against the company's tags */
+            tag_check?: boolean;
+        };
+        /** @enum {string} */
+        KeySource: "company" | "platform";
+        /** @enum {string} */
+        Unavailable: "not_configured" | "not_in_plan" | "budget_reached";
+        ProviderAccess: {
+            /** @enum {string} */
+            kind: "ai_claude" | "ai_muse" | "ai_typesafe" | "ai_higgsfield" | "voice" | "asr" | "whatsapp";
+            company_key: boolean;
+            platform_key: boolean;
+            using?: components["schemas"]["KeySource"] | null;
+            unavailable?: components["schemas"]["Unavailable"] | null;
+            message?: string | null;
+            model?: string | null;
+        };
+        AiOverview: {
+            routing: components["schemas"]["AiRouting"];
+            plan: {
+                platform_keys: boolean;
+                allowed: string[];
+                monthly_budget_usd?: number | null;
+                /** @description Billed platform-key spend this month, markup included */
+                spent_this_month_usd: number;
+            };
+            providers: components["schemas"]["ProviderAccess"][];
+        };
+        AiUsage: {
+            /** Format: date-time */
+            from: string;
+            /** Format: date-time */
+            to: string;
+            lines: {
+                provider: string;
+                /** @enum {string} */
+                capability: "write" | "judge" | "render" | "voice" | "transcribe";
+                key_source: components["schemas"]["KeySource"];
+                calls: number;
+                failed: number;
+                input_tokens: number;
+                output_tokens: number;
+                units: number;
+                /** @description Null when no price is set for the provider */
+                cost_usd?: number | null;
+            }[];
+            days: {
+                /** Format: date */
+                day: string;
+                calls: number;
+                cost_usd?: number | null;
+            }[];
+            platform_billable_usd: number;
+            company_cost_usd: number;
+        };
+        AiPlan: {
+            /** @description The company may use the platform's keys when it has none of its own */
+            platform_keys?: boolean;
+            /** @description Ceiling on billed platform-key spend per month; null is unlimited */
+            monthly_budget_usd?: number | null;
+            markup_pct?: number;
+            /** @description Providers allowed on platform keys; empty means all */
+            allowed?: string[];
+        };
+        PlatformIntegration: {
+            kind: string;
+            /** @enum {string} */
+            status: "connected" | "disconnected" | "error";
+            /** @enum {string|null} */
+            source?: "console" | "environment" | null;
+            last_error?: string | null;
+            /** @description Secrets masked as •••• */
+            public_config: {
+                [key: string]: unknown;
+            };
+        };
+        TenantAi: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            /** Format: date-time */
+            created_at?: string;
+            plan: components["schemas"]["AiPlan"];
+            calls: number;
+            company_calls?: number;
+            platform_calls?: number;
+            platform_cost_usd: number;
+            billable_usd: number;
+            company_cost_usd: number;
+            unpriced_calls?: number;
+            budget_used?: number | null;
         };
         ReelPatch: {
             title?: string;

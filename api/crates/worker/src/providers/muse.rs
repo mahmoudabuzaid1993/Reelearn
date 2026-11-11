@@ -125,6 +125,7 @@ pub struct MuseWriter {
     base_url: String,
     api_key: String,
     model: String,
+    meter: Meter,
 }
 
 impl MuseWriter {
@@ -139,7 +140,13 @@ impl MuseWriter {
             base_url: base_url.trim_end_matches('/').to_string(),
             api_key,
             model,
+            meter: Meter::default(),
         }
+    }
+
+    pub fn with_meter(mut self, meter: Meter) -> MuseWriter {
+        self.meter = meter;
+        self
     }
 
     /// One schema-constrained chat completion. Returns the parsed JSON object.
@@ -169,6 +176,8 @@ impl MuseWriter {
             .await
             .map_err(|e| ProviderError::Unavailable(e.to_string()))?;
         let v = read_response(resp).await?;
+        self.meter
+            .record_tokens("ai_muse", "write", &self.model, &v["usage"]);
         parse_completion(&v)
     }
 }

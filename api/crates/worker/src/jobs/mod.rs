@@ -77,6 +77,39 @@ pub async fn dispatch(ctx: &Ctx, job: &JobRow) -> Result<JobOutcome, JobError> {
     };
     // A job that carries a generation_job_id is a pipeline step; the same kinds without one are source-only jobs.
     let is_step = job.payload.get("generation_job_id").is_some();
+    // In production each company's job runs with the keys it resolves to (its own, else the platform's).
+    let scoped;
+    let ctx = match job.tenant_id {
+        Some(t) if ctx.per_company && uses_providers(&job.kind) => {
+            scoped = ctx
+                .scoped(t)
+                .await
+                .map_err(|e| JobError::Transient(format!("resolving AI keys: {e}")))?;
+            &scoped
+        }
+        _ => ctx,
+    };
+    let result = run(ctx, job, is_step, tenant).await;
+    if let Some(t) = job.tenant_id {
+        ctx.flush_usage(t, &ctx.providers, Some(job.id)).await;
+    }
+    result
+}
+
+/// Job kinds that call an AI or messaging provider.
+fn uses_providers(kind: &str) -> bool {
+    !matches!(
+        kind,
+        "build_daily_plans" | "hrdf_export" | "data_export" | "maintain_partitions"
+    )
+}
+
+async fn run(
+    ctx: &Ctx,
+    job: &JobRow,
+    is_step: bool,
+    tenant: impl Fn() -> Result<uuid::Uuid, JobError>,
+) -> Result<JobOutcome, JobError> {
     match job.kind.as_str() {
         "extract_source" if is_step => pipeline::run_step(ctx, tenant()?, &job.payload).await,
         "extract_source" => pipeline::extract_source(ctx, tenant()?, &job.payload).await,

@@ -26,6 +26,10 @@ tags:
   - name: settings
   - name: engine
     description: The learning engine. Practice batches, signals, topics, sharing, company tuning and insights.
+  - name: ai
+    description: AI providers. Which provider writes, the TypeSafe Jev quality check, whose key each provider uses, and metered usage.
+  - name: platform
+    description: For the people who run Reelearn, not a company role. Platform keys and prices, each company's AI plan, and the usage export.
   - name: webhooks
   - name: system
 
@@ -1144,6 +1148,89 @@ paths:
       parameters: [ { name: kind, in: path, required: true, schema: { $ref: "#/components/schemas/IntegrationKind" } } ]
       responses:
         "200": { description: Result, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, message: { type: string } } } } } }
+  /admin/ai:
+    get:
+      tags: [ai]
+      summary: Which provider writes, the quality check, and whose key each provider uses
+      responses:
+        "200": { description: Overview, content: { application/json: { schema: { $ref: "#/components/schemas/AiOverview" } } } }
+    put:
+      tags: [ai]
+      summary: Change the AI routing
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AiRouting" } } } }
+      responses:
+        "200": { description: Overview after the change, content: { application/json: { schema: { $ref: "#/components/schemas/AiOverview" } } } }
+        "422": { $ref: "#/components/responses/Problem" }
+  /admin/ai/usage:
+    get:
+      tags: [ai]
+      summary: Metered AI usage for a month, by provider, capability and whose key paid
+      parameters:
+        - { name: month, in: query, required: false, schema: { type: string, pattern: "^[0-9]{4}-[0-9]{2}$" } }
+      responses:
+        "200": { description: Usage, content: { application/json: { schema: { $ref: "#/components/schemas/AiUsage" } } } }
+        "422": { $ref: "#/components/responses/Problem" }
+  /platform/me:
+    get:
+      tags: [platform]
+      summary: Whether the signed-in person runs the platform
+      responses:
+        "200": { description: Flag, content: { application/json: { schema: { type: object, required: [operator], properties: { operator: { type: boolean } } } } } }
+  /platform/integrations:
+    get:
+      tags: [platform]
+      summary: The platform's provider keys (from the console or the server environment), secrets masked
+      responses:
+        "200": { description: Providers, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/PlatformIntegration" } } } } }
+        "403": { $ref: "#/components/responses/Problem" }
+  /platform/integrations/{kind}:
+    put:
+      tags: [platform]
+      summary: Set the platform's key, model, endpoint and prices for a provider (merged; null removes a field)
+      parameters: [ { name: kind, in: path, required: true, schema: { type: string, enum: [ai_claude, ai_muse, ai_typesafe, ai_higgsfield, voice, asr, whatsapp] } } ]
+      requestBody: { required: true, content: { application/json: { schema: { type: object, additionalProperties: true } } } }
+      responses:
+        "200": { description: Providers after the change, content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/PlatformIntegration" } } } } }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+  /platform/integrations/{kind}/test:
+    post:
+      tags: [platform]
+      parameters: [ { name: kind, in: path, required: true, schema: { type: string } } ]
+      responses:
+        "200": { description: Result, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean }, message: { type: string } } } } } }
+  /platform/tenants:
+    get:
+      tags: [platform]
+      summary: Every company with its AI plan and the month's usage split by whose key paid
+      parameters:
+        - { name: month, in: query, required: false, schema: { type: string, pattern: "^[0-9]{4}-[0-9]{2}$" } }
+      responses:
+        "200":
+          description: Companies
+          content:
+            application/json:
+              schema: { type: object, required: [from, to, tenants], properties: { from: { type: string, format: date-time }, to: { type: string, format: date-time }, tenants: { type: array, items: { $ref: "#/components/schemas/TenantAi" } } } }
+        "403": { $ref: "#/components/responses/Problem" }
+  /platform/tenants/{tenant_id}/ai-plan:
+    put:
+      tags: [platform]
+      summary: Set a company's AI plan (platform keys, monthly budget, markup, allowed providers)
+      parameters: [ { name: tenant_id, in: path, required: true, schema: { type: string, format: uuid } } ]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: "#/components/schemas/AiPlan" } } } }
+      responses:
+        "200": { description: Plan, content: { application/json: { schema: { $ref: "#/components/schemas/AiPlan" } } } }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+  /platform/usage.csv:
+    get:
+      tags: [platform]
+      summary: Invoice lines for a month, one per company, provider, capability, key source and model
+      parameters:
+        - { name: month, in: query, required: false, schema: { type: string, pattern: "^[0-9]{4}-[0-9]{2}$" } }
+      responses:
+        "200": { description: CSV, content: { text/csv: { schema: { type: string } } } }
+        "403": { $ref: "#/components/responses/Problem" }
   /admin/engine:
     get:
       tags: [engine]
@@ -1440,7 +1527,7 @@ components:
     DeliverySlot: { type: string, enum: [shift_start, break, shift_end] }
     ReelKind: { type: string, enum: [ai_avatar, motion, broll, podcast_cut, sme_recorded] }
     ReelStatus: { type: string, enum: [draft, in_review, approved, published, archived, rejected] }
-    IntegrationKind: { type: string, enum: [hris_jisr, hris_bayzat, sso_entra, whatsapp, teams, ai_muse, ai_claude, ai_higgsfield, ai_veo, voice, asr, storage] }
+    IntegrationKind: { type: string, enum: [hris_jisr, hris_bayzat, sso_entra, whatsapp, teams, ai_muse, ai_claude, ai_typesafe, ai_higgsfield, ai_veo, voice, asr, storage] }
     DeviceInfo:
       type: object
       required: [device_id, platform]
@@ -1773,6 +1860,7 @@ components:
         published_at: { type: [string, "null"], format: date-time }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
+        quality: { oneOf: [ { $ref: "#/components/schemas/ReelQuality" }, { type: "null" } ] }
     ReelListItem:
       type: object
       required: [id, topic, kind, status, title, language, version, updated_at]
@@ -1791,6 +1879,111 @@ components:
         plays: { type: integer }
         awaiting: { type: [string, "null"], description: "e.g. 'SME sign-off'" }
         updated_at: { type: string, format: date-time }
+        quality: { oneOf: [ { $ref: "#/components/schemas/ReelQuality" }, { type: "null" } ] }
+    ReelQuality:
+      type: object
+      description: TypeSafe Jev's check of a draft. Advisory; people still approve every reel.
+      required: [status, needs_attention, flags]
+      properties:
+        status: { type: string, enum: [checked, unavailable] }
+        score: { type: [integer, "null"], minimum: 0, maximum: 100 }
+        needs_attention: { type: boolean }
+        flags: { type: array, items: { type: string, enum: [not_grounded, off_topic, unsafe_content, caption_mismatch, unclear, weak_hook, answer_key_wrong, ambiguous_question, weak_distractors] } }
+        judge: { type: [string, "null"] }
+        message: { type: [string, "null"] }
+        checked_at: { type: [string, "null"], format: date-time }
+    AiRouting:
+      type: object
+      properties:
+        writer: { type: string, enum: [auto, claude, muse], description: "auto: Meta Muse when it has a key, else Claude" }
+        quality_check: { type: boolean, description: Run the TypeSafe Jev check on every new draft }
+        review_threshold: { type: integer, minimum: 0, maximum: 100, description: Drafts scoring below this are flagged for reviewers }
+        role_matching: { type: boolean, description: Let Jev judge how relevant each reel is to each job title }
+        tag_check: { type: boolean, description: Let Jev check the writer's subject tags against the company's tags }
+    KeySource: { type: string, enum: [company, platform] }
+    Unavailable: { type: string, enum: [not_configured, not_in_plan, budget_reached] }
+    ProviderAccess:
+      type: object
+      required: [kind, company_key, platform_key]
+      properties:
+        kind: { type: string, enum: [ai_claude, ai_muse, ai_typesafe, ai_higgsfield, voice, asr, whatsapp] }
+        company_key: { type: boolean }
+        platform_key: { type: boolean }
+        using: { oneOf: [ { $ref: "#/components/schemas/KeySource" }, { type: "null" } ] }
+        unavailable: { oneOf: [ { $ref: "#/components/schemas/Unavailable" }, { type: "null" } ] }
+        message: { type: [string, "null"] }
+        model: { type: [string, "null"] }
+    AiOverview:
+      type: object
+      required: [routing, plan, providers]
+      properties:
+        routing: { $ref: "#/components/schemas/AiRouting" }
+        plan:
+          type: object
+          required: [platform_keys, allowed, spent_this_month_usd]
+          properties:
+            platform_keys: { type: boolean }
+            allowed: { type: array, items: { type: string } }
+            monthly_budget_usd: { type: [number, "null"] }
+            spent_this_month_usd: { type: number, description: "Billed platform-key spend this month, markup included" }
+        providers: { type: array, items: { $ref: "#/components/schemas/ProviderAccess" } }
+    AiUsage:
+      type: object
+      required: [from, to, lines, days, platform_billable_usd, company_cost_usd]
+      properties:
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        lines:
+          type: array
+          items:
+            type: object
+            required: [provider, capability, key_source, calls, failed, input_tokens, output_tokens, units]
+            properties:
+              provider: { type: string }
+              capability: { type: string, enum: [write, judge, render, voice, transcribe] }
+              key_source: { $ref: "#/components/schemas/KeySource" }
+              calls: { type: integer }
+              failed: { type: integer }
+              input_tokens: { type: integer }
+              output_tokens: { type: integer }
+              units: { type: integer }
+              cost_usd: { type: [number, "null"], description: Null when no price is set for the provider }
+        days: { type: array, items: { type: object, required: [day, calls], properties: { day: { type: string, format: date }, calls: { type: integer }, cost_usd: { type: [number, "null"] } } } }
+        platform_billable_usd: { type: number }
+        company_cost_usd: { type: number }
+    AiPlan:
+      type: object
+      properties:
+        platform_keys: { type: boolean, description: The company may use the platform's keys when it has none of its own }
+        monthly_budget_usd: { type: [number, "null"], minimum: 0, description: Ceiling on billed platform-key spend per month; null is unlimited }
+        markup_pct: { type: number, minimum: 0, maximum: 500 }
+        allowed: { type: array, items: { type: string }, description: Providers allowed on platform keys; empty means all }
+    PlatformIntegration:
+      type: object
+      required: [kind, status, public_config]
+      properties:
+        kind: { type: string }
+        status: { type: string, enum: [connected, disconnected, error] }
+        source: { type: [string, "null"], enum: [console, environment, null] }
+        last_error: { type: [string, "null"] }
+        public_config: { type: object, additionalProperties: true, description: Secrets masked as •••• }
+    TenantAi:
+      type: object
+      required: [id, slug, name, plan, calls, platform_cost_usd, billable_usd, company_cost_usd]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        created_at: { type: string, format: date-time }
+        plan: { $ref: "#/components/schemas/AiPlan" }
+        calls: { type: integer }
+        company_calls: { type: integer }
+        platform_calls: { type: integer }
+        platform_cost_usd: { type: number }
+        billable_usd: { type: number }
+        company_cost_usd: { type: number }
+        unpriced_calls: { type: integer }
+        budget_used: { type: [number, "null"], minimum: 0, maximum: 1 }
     ReelPatch:
       type: object
       properties:

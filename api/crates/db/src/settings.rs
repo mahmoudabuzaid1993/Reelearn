@@ -1,6 +1,7 @@
 //! `tenants.settings` jsonb, with the contract's defaults.
 
 use chrono::{DateTime, NaiveDate, Utc};
+use reelearn_domain::ai::AiRouting;
 use reelearn_domain::engine::EngineSettings;
 use serde::{Deserialize, Serialize};
 
@@ -31,6 +32,8 @@ pub struct TenantSettings {
     pub delivery_hour: u32,
     /// The learning engine: intensity, value-model weights, practice caps, reminders.
     pub engine: EngineSettings,
+    /// Which AI provider writes and whether TypeSafe Jev checks drafts and matches roles.
+    pub ai: AiRouting,
 }
 
 impl Default for TenantSettings {
@@ -57,6 +60,7 @@ impl Default for TenantSettings {
             plan_build_hour: 4,
             delivery_hour: 8,
             engine: EngineSettings::default(),
+            ai: AiRouting::default(),
         }
     }
 }
@@ -65,6 +69,7 @@ impl TenantSettings {
     pub fn from_json(v: &serde_json::Value) -> TenantSettings {
         let mut s: TenantSettings = serde_json::from_value(v.clone()).unwrap_or_default();
         s.engine = s.engine.sanitized();
+        s.ai = s.ai.sanitized();
         s
     }
 

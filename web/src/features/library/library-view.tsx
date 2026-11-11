@@ -1,5 +1,6 @@
 "use client";
 
+import { QualityBadge } from "@/features/ai/quality-badge";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -170,6 +171,7 @@ export function LibraryView() {
                   <Td>
                     <div className="flex flex-col items-start gap-1">
                       <Badge tone={STATUS_TONE[r.status]}>{t(`statuses.${r.status}`)}</Badge>
+                      {r.status !== "published" && r.status !== "archived" ? <QualityBadge quality={r.quality} /> : null}
                       {r.awaiting ? (
                         <Link href={`/studio/reels/${r.id}/publish`} className="text-xs text-slate underline underline-offset-2">
                           {t("awaiting", { what: r.awaiting })}

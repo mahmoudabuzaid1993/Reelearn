@@ -218,7 +218,7 @@ wire_enum!(IntegrationKind, "integration_kind_t", {
     HrisJisr => "hris_jisr", HrisBayzat => "hris_bayzat", SsoEntra => "sso_entra",
     Whatsapp => "whatsapp", Teams => "teams", AiClaude => "ai_claude", AiMuse => "ai_muse",
     AiHiggsfield => "ai_higgsfield", AiVeo => "ai_veo", Voice => "voice", Asr => "asr",
-    Storage => "storage",
+    Storage => "storage", AiTypesafe => "ai_typesafe",
 });
 
 impl IntegrationKind {
@@ -243,6 +243,7 @@ impl IntegrationKind {
             IntegrationKind::Whatsapp => &["phone_number_id", "access_token"],
             IntegrationKind::AiClaude
             | IntegrationKind::AiMuse
+            | IntegrationKind::AiTypesafe
             | IntegrationKind::AiHiggsfield
             | IntegrationKind::AiVeo
             | IntegrationKind::Voice

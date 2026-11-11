@@ -8,6 +8,10 @@ Reelearn is a B2B platform that feeds employees short vertical learning reels on
 
 Which reel comes next is decided by a ranking engine modelled on short-video recommenders, with a value model that also rewards learning. Each company sets its intensity from Gentle to Maximum in the console under **Learning engine**. Design and guardrails: [docs/engine.md](docs/engine.md); the research behind it: [docs/research/short-video-recommenders.md](docs/research/short-video-recommenders.md).
 
+## AI providers
+
+Meta Muse and Claude write; TypeSafe Jev checks every draft (grounded, safe, clear, correct answer key), connects tags and matches reels to job titles. Every provider is configured in the console: each company can bring its own keys (Settings → AI), otherwise it uses the platform's keys within the AI plan and monthly budget the platform operator sets (Platform). Every call is metered with whose key paid, and the month's invoice lines export as CSV. Details: [docs/ai-providers.md](docs/ai-providers.md).
+
 ## Repository layout (three tiers + mobile)
 
 ```

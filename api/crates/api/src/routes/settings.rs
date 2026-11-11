@@ -19,6 +19,8 @@ pub fn routes() -> Router<AppState> {
         .route("/admin/integrations", get(list))
         .route("/admin/integrations/{kind}", put(upsert))
         .route("/admin/integrations/{kind}/test", axum::routing::post(test))
+        .route("/admin/ai", get(ai_get).put(ai_put))
+        .route("/admin/ai/usage", get(ai_usage))
         .route("/admin/audit", get(audit_list))
 }
 
@@ -102,6 +104,12 @@ async fn upsert(
             .unwrap_or_default(),
         None => serde_json::Map::new(),
     };
+    if let Some(bad) = incoming
+        .keys()
+        .find(|k| !crate::services::ai::allowed_key(kind, k))
+    {
+        return Err(ApiError::field(bad, "is not a setting of this integration"));
+    }
     for (k, v) in incoming {
         if v.is_null() {
             merged.remove(k);
@@ -209,7 +217,7 @@ async fn test(
 }
 
 /// Live probe for providers with a cheap authenticated endpoint; `None` means OK.
-async fn probe(
+pub(crate) async fn probe(
     state: &AppState,
     kind: IntegrationKind,
     config: &serde_json::Value,
@@ -222,7 +230,16 @@ async fn probe(
             .get(k)
             .and_then(|v| v.as_str())
             .unwrap_or("")
+            .trim()
             .to_string()
+    };
+    let base = |default: &str| {
+        let b = get("base_url");
+        if b.is_empty() {
+            default.to_string()
+        } else {
+            b.trim_end_matches('/').to_string()
+        }
     };
     let req = match kind {
         IntegrationKind::AiClaude => state
@@ -232,7 +249,11 @@ async fn probe(
             .header("anthropic-version", "2023-06-01"),
         IntegrationKind::AiMuse => state
             .http
-            .get("https://api.meta.ai/v1/models")
+            .get(format!("{}/models", base("https://api.meta.ai/v1")))
+            .bearer_auth(get("api_key")),
+        IntegrationKind::AiTypesafe => state
+            .http
+            .get(format!("{}/v1/models", base("https://api.typesafe.ai")))
             .bearer_auth(get("api_key")),
         IntegrationKind::Whatsapp => state
             .http
@@ -248,6 +269,190 @@ async fn probe(
         Ok(r) => Some(format!("provider answered {}", r.status())),
         Err(e) => Some(format!("provider unreachable: {e}")),
     }
+}
+
+// ---------------------------------------------------------------- AI: routing, access, usage
+
+#[derive(serde::Serialize)]
+struct AiOverview {
+    routing: reelearn_domain::ai::AiRouting,
+    /// What the platform includes: whether its keys may be used and this month's budget.
+    plan: AiPlanView,
+    providers: Vec<crate::services::ai::ProviderAccess>,
+}
+
+#[derive(serde::Serialize)]
+struct AiPlanView {
+    platform_keys: bool,
+    allowed: Vec<String>,
+    monthly_budget_usd: Option<f64>,
+    /// Billed platform-key spend this month (markup included), in USD.
+    spent_this_month_usd: f64,
+}
+
+async fn ai_overview(state: &AppState, tenant_id: Uuid) -> Result<AiOverview, ApiError> {
+    let resolved = crate::services::ai::resolve(state, tenant_id).await?;
+    let providers = crate::services::ai::access(state, tenant_id).await?;
+    Ok(AiOverview {
+        routing: resolved.routing.clone(),
+        plan: AiPlanView {
+            platform_keys: resolved.plan.platform_keys,
+            allowed: resolved.plan.allowed.clone(),
+            monthly_budget_usd: resolved.plan.monthly_budget_usd,
+            spent_this_month_usd: resolved.plan.billable(resolved.platform_spend_this_month),
+        },
+        providers,
+    })
+}
+
+async fn ai_get(
+    State(state): State<AppState>,
+    auth: AuthUser,
+) -> Result<Json<AiOverview>, ApiError> {
+    Ok(Json(ai_overview(&state, auth.tenant_id).await?))
+}
+
+async fn ai_put(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Json(body): Json<reelearn_domain::ai::AiRouting>,
+) -> Result<Json<AiOverview>, ApiError> {
+    if body.review_threshold > 100 {
+        return Err(ApiError::field("review_threshold", "must be 0 to 100"));
+    }
+    let mut tx = state.db.tenant_tx(auth.tenant_id).await?;
+    let tenant = reelearn_db::repos::tenants::get(tx.conn(), auth.tenant_id).await?;
+    let mut settings = reelearn_db::settings::TenantSettings::from_json(&tenant.settings);
+    let before = settings.ai.clone();
+    settings.ai = body.sanitized();
+    reelearn_db::repos::tenants::update(
+        tx.conn(),
+        auth.tenant_id,
+        reelearn_db::repos::tenants::TenantPatch {
+            settings: Some(serde_json::to_value(&settings).map_err(ApiError::internal)?),
+            ..Default::default()
+        },
+    )
+    .await?;
+    record_audit(
+        &mut tx,
+        auth.user_id,
+        "ai.routing.update",
+        "tenant",
+        Some(auth.tenant_id),
+        Some(serde_json::json!({ "before": before, "after": settings.ai })),
+    )
+    .await?;
+    tx.commit().await?;
+    Ok(Json(ai_overview(&state, auth.tenant_id).await?))
+}
+
+#[derive(Deserialize)]
+struct UsageQuery {
+    /// `YYYY-MM`; this month when absent.
+    month: Option<String>,
+}
+
+pub(crate) fn month_window(
+    month: Option<&str>,
+) -> Result<(chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>), ApiError> {
+    use crate::services::ai::{month_start, next_month_start};
+    use chrono::TimeZone;
+    let start = match month {
+        None => month_start(chrono::Utc::now()),
+        Some(m) => {
+            let (y, mo) = m
+                .split_once('-')
+                .and_then(|(y, mo)| Some((y.parse::<i32>().ok()?, mo.parse::<u32>().ok()?)))
+                .ok_or_else(|| ApiError::field("month", "must be YYYY-MM"))?;
+            chrono::Utc
+                .with_ymd_and_hms(y, mo, 1, 0, 0, 0)
+                .single()
+                .ok_or_else(|| ApiError::field("month", "must be YYYY-MM"))?
+        }
+    };
+    Ok((start, next_month_start(start)))
+}
+
+#[derive(serde::Serialize)]
+struct UsageLine {
+    provider: String,
+    capability: String,
+    key_source: String,
+    calls: i64,
+    failed: i64,
+    input_tokens: i64,
+    output_tokens: i64,
+    units: i64,
+    cost_usd: Option<f64>,
+}
+
+#[derive(serde::Serialize)]
+struct UsageDay {
+    day: chrono::NaiveDate,
+    calls: i64,
+    cost_usd: Option<f64>,
+}
+
+#[derive(serde::Serialize)]
+struct AiUsage {
+    from: chrono::DateTime<chrono::Utc>,
+    to: chrono::DateTime<chrono::Utc>,
+    lines: Vec<UsageLine>,
+    days: Vec<UsageDay>,
+    /// Platform-key cost with the plan's markup: what the platform bills the company.
+    platform_billable_usd: f64,
+    /// Cost of calls on the company's own keys, as priced (paid directly to the vendors).
+    company_cost_usd: f64,
+}
+
+async fn ai_usage(
+    State(state): State<AppState>,
+    auth: AuthUser,
+    Query(q): Query<UsageQuery>,
+) -> Result<Json<AiUsage>, ApiError> {
+    use reelearn_db::repos::ai as repo;
+    let (from, to) = month_window(q.month.as_deref())?;
+    let mut tx = state.db.tenant_tx(auth.tenant_id).await?;
+    let plan = repo::plan(tx.conn(), auth.tenant_id).await?;
+    let lines = repo::usage_summary(tx.conn(), from, to).await?;
+    let days = repo::usage_daily(tx.conn(), from, to).await?;
+    tx.commit().await?;
+    let sum = |src: &str| {
+        lines
+            .iter()
+            .filter(|l| l.key_source == src)
+            .filter_map(|l| l.cost_usd)
+            .sum::<f64>()
+    };
+    Ok(Json(AiUsage {
+        from,
+        to,
+        platform_billable_usd: plan.billable(sum("platform")),
+        company_cost_usd: sum("company"),
+        lines: lines
+            .into_iter()
+            .map(|l| UsageLine {
+                provider: l.provider,
+                capability: l.capability,
+                key_source: l.key_source,
+                calls: l.calls,
+                failed: l.failed,
+                input_tokens: l.input_tokens,
+                output_tokens: l.output_tokens,
+                units: l.units,
+                cost_usd: l.cost_usd,
+            })
+            .collect(),
+        days: days
+            .into_iter()
+            .map(|d| UsageDay {
+                day: d.day,
+                calls: d.calls,
+                cost_usd: d.cost_usd,
+            })
+            .collect(),
+    }))
 }
 
 #[derive(Deserialize)]

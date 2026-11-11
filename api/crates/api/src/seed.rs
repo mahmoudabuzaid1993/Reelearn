@@ -621,6 +621,18 @@ pub async fn seed_demo(state: &AppState) -> Result<SeedOutcome, ApiError> {
         &[sara.id, rizwan.id, mohammad.id, fatimah.id],
     )
     .await?;
+    seed_ai(
+        &mut tx,
+        tid,
+        &reel_ids,
+        &[
+            (sara.id, "Cashier"),
+            (rizwan.id, "Warehouse associate"),
+            (mohammad.id, "Shift supervisor"),
+            (fatimah.id, "Customer service agent"),
+        ],
+    )
+    .await?;
     seed_daily_topic_stats(
         &mut tx,
         tid,
@@ -645,6 +657,12 @@ pub async fn seed_demo(state: &AppState) -> Result<SeedOutcome, ApiError> {
     )
     .await?;
     tx.commit().await?;
+    // The demo admin also runs the platform area (platform keys, AI plans, usage export).
+    {
+        let mut admin = state.db.admin_tx().await?;
+        reelearn_db::repos::ai::grant_platform_operator_admin(&mut admin, noura.id).await?;
+        admin.commit().await?;
+    }
 
     let mut uploaded = 0;
     for (key, mime, bytes) in media {
@@ -956,5 +974,189 @@ async fn seed_engine(
     }
     eng::refresh_band_stats(tx.conn(), tid).await?;
     eng::refresh_cohort_stats(tx.conn(), tid).await?;
+    Ok(())
+}
+
+/// AI layer demo data: job titles, the Jev quality check on drafts in review, job-title
+/// relevance for published reels, an AI plan with a budget and two weeks of metered usage.
+async fn seed_ai(
+    tx: &mut TenantTx,
+    tid: Uuid,
+    reel_ids: &[Uuid],
+    people: &[(Uuid, &str)],
+) -> Result<(), ApiError> {
+    use reelearn_db::repos::ai as ai_repo;
+    use reelearn_domain::ai::{review, AiPlan, DraftAnswers, Prices, QuestionAnswers};
+    for (id, title) in people {
+        sqlx::query("UPDATE users SET job_title = $2 WHERE id = $1")
+            .bind(id)
+            .bind(title)
+            .execute(tx.conn())
+            .await?;
+    }
+    let roles: Vec<String> = people
+        .iter()
+        .filter_map(|(_, t)| reelearn_domain::ai::role_key(t))
+        .collect();
+    for (i, id) in reel_ids.iter().enumerate() {
+        let reel = reels::get(tx.conn(), *id).await?;
+        let tags = ai_repo::reel_tags(tx.conn(), *id).await?;
+        if reel.status == ReelStatus::Published {
+            let text = format!("{} {}", reel.title, tags.join(" ")).to_lowercase();
+            for role in &roles {
+                // Deterministic demo relevance: customer-facing roles for service reels, and so on.
+                let fit = match role.as_str() {
+                    "cashier" | "customer service agent"
+                        if text.contains("customer")
+                            || text.contains("service")
+                            || text.contains("complaint") =>
+                    {
+                        0.9
+                    }
+                    "warehouse associate"
+                        if text.contains("fire")
+                            || text.contains("safety")
+                            || text.contains("lift") =>
+                    {
+                        0.88
+                    }
+                    "shift supervisor" => 0.7,
+                    _ if text.contains("money")
+                        || text.contains("aml")
+                        || text.contains("cash") =>
+                    {
+                        0.75
+                    }
+                    _ => 0.35,
+                };
+                ai_repo::upsert_role_fit(tx.conn(), tid, *id, role, fit, Some("seed")).await?;
+            }
+            continue;
+        }
+        // Drafts and reels in review carry Jev's check; every third one has a problem to show.
+        let flawed = i % 3 == 1;
+        let answers = DraftAnswers {
+            grounded: if flawed { 0.34 } else { 0.93 },
+            on_topic: 0.96,
+            unsafe_content: 0.02,
+            caption_fits: 1.0,
+            clarity: if flawed { 2.1 } else { 3.5 },
+            hook: if flawed { 1.2 } else { 2.9 },
+            difficulty: 2.3,
+            question: Some(QuestionAnswers {
+                key_correct: if flawed { 0.41 } else { 0.95 },
+                single_answer: 0.9,
+                distractors: 2.7,
+            }),
+            tags: tags.iter().map(|t| (t.clone(), 0.85)).collect(),
+        };
+        let r = review(&answers, 70, &tags);
+        let doc = serde_json::json!({
+            "status": "checked", "judge": "typesafe-jev", "score": r.score,
+            "needs_attention": r.needs_attention, "flags": r.flags, "answers": answers,
+            "checked_at": Utc::now(),
+        });
+        ai_repo::set_review(tx.conn(), *id, &doc, Some(i16::from(r.score))).await?;
+    }
+
+    let plan = AiPlan {
+        platform_keys: true,
+        monthly_budget_usd: Some(150.0),
+        markup_pct: 20.0,
+        allowed: Vec::new(),
+    };
+    sqlx::query("UPDATE tenants SET ai_plan = $2 WHERE id = $1")
+        .bind(tid)
+        .bind(serde_json::to_value(&plan).unwrap_or_default())
+        .execute(tx.conn())
+        .await?;
+    let muse = Prices {
+        input_per_mtok: Some(1.0),
+        output_per_mtok: Some(4.0),
+        per_call: Some(0.02),
+    };
+    let claude = Prices {
+        input_per_mtok: Some(3.0),
+        output_per_mtok: Some(15.0),
+        per_call: None,
+    };
+    let now = Utc::now();
+    // ai_usage is partitioned by month from this one on: seed this month's days only.
+    let month_start = crate::services::ai::month_start(now);
+    for d in 0..14i64 {
+        let at = now - chrono::Duration::days(d) - chrono::Duration::hours(2);
+        if at < month_start {
+            break;
+        }
+        type Line<'a> = (
+            &'a str,
+            &'a str,
+            &'a str,
+            Option<&'a str>,
+            i64,
+            i64,
+            i32,
+            Prices,
+        );
+        let lines: [Line; 4] = [
+            (
+                "ai_muse",
+                "write",
+                "platform",
+                Some("muse-spark-1.3"),
+                42_000 + 900 * d,
+                6_500,
+                1,
+                muse,
+            ),
+            ("ai_muse", "render", "platform", None, 0, 0, 3, muse),
+            (
+                "ai_typesafe",
+                "judge",
+                "platform",
+                Some("jev-1.14.0"),
+                61_000 + 1_200 * d,
+                300,
+                1,
+                Prices::jev(),
+            ),
+            (
+                "ai_claude",
+                "write",
+                "company",
+                Some("claude-sonnet-5-5"),
+                18_000,
+                3_000,
+                1,
+                claude,
+            ),
+        ];
+        for (provider, capability, source, model, input, output, units, prices) in lines {
+            if provider == "ai_claude" && d % 4 != 0 {
+                continue;
+            }
+            let cost = prices.cost(
+                input as u64,
+                output as u64,
+                if input == 0 { units as u32 } else { 0 },
+            );
+            sqlx::query(
+                "INSERT INTO ai_usage (tenant_id, at, provider, capability, key_source, model, input_tokens, output_tokens, units, cost_usd, ok)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::float8::numeric, true)",
+            )
+            .bind(tid)
+            .bind(at)
+            .bind(provider)
+            .bind(capability)
+            .bind(source)
+            .bind(model)
+            .bind(input)
+            .bind(output)
+            .bind(units)
+            .bind(cost)
+            .execute(tx.conn())
+            .await?;
+        }
+    }
     Ok(())
 }

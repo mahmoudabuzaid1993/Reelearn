@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { usePlatformMe } from "@/lib/api/hooks/ai";
 import { cn } from "@/lib/cn";
 
 const NAV = [
@@ -20,6 +21,9 @@ const NAV = [
 export function Sidebar({ tenantName }: { tenantName: string }) {
   const pathname = usePathname();
   const t = useTranslations("nav");
+  // The Platform page is only for the people who run Reelearn.
+  const operator = usePlatformMe().data?.operator === true;
+  const items = operator ? [...NAV, { href: "/platform", key: "platform" } as const] : NAV;
   return (
     <aside className="hidden w-56 shrink-0 flex-col border-e border-line bg-surface md:flex">
       <div className="flex h-14 items-center gap-2 border-b border-line px-4">
@@ -27,7 +31,7 @@ export function Sidebar({ tenantName }: { tenantName: string }) {
         <span className="font-display text-base font-semibold text-ink">Reelearn</span>
       </div>
       <nav aria-label={t("primary")} className="flex flex-1 flex-col gap-0.5 p-2">
-        {NAV.map((item) => {
+        {items.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link

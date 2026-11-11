@@ -452,6 +452,7 @@ pub struct Reel {
     pub published_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub quality: Option<ReelQuality>,
 }
 
 #[derive(Debug, Serialize)]
@@ -476,6 +477,52 @@ pub struct ReelListItem {
     pub plays: i64,
     pub awaiting: Option<String>,
     pub updated_at: DateTime<Utc>,
+    pub quality: Option<ReelQuality>,
+}
+
+/// TypeSafe Jev's check of a draft, as reviewers see it. Advisory: people still approve.
+#[derive(Debug, Clone, Serialize)]
+pub struct ReelQuality {
+    /// `checked`, or `unavailable` when the judge could not be reached.
+    pub status: String,
+    pub score: Option<i16>,
+    pub needs_attention: bool,
+    pub flags: Vec<String>,
+    pub judge: Option<String>,
+    pub message: Option<String>,
+    pub checked_at: Option<DateTime<Utc>>,
+}
+
+impl ReelQuality {
+    pub fn from_review(
+        review: Option<&serde_json::Value>,
+        score: Option<i16>,
+    ) -> Option<ReelQuality> {
+        let r = review?;
+        let s = |k: &str| r.get(k).and_then(|v| v.as_str()).map(String::from);
+        Some(ReelQuality {
+            status: s("status").unwrap_or_else(|| "checked".into()),
+            score,
+            needs_attention: r
+                .get("needs_attention")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false),
+            flags: r
+                .get("flags")
+                .and_then(|v| v.as_array())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|f| f.as_str().map(String::from))
+                        .collect()
+                })
+                .unwrap_or_default(),
+            judge: s("judge"),
+            message: s("message"),
+            checked_at: r
+                .get("checked_at")
+                .and_then(|v| serde_json::from_value(v.clone()).ok()),
+        })
+    }
 }
 
 #[derive(Debug, Deserialize)]

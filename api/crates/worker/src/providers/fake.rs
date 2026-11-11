@@ -366,3 +366,64 @@ fn fake_tags(topic: &str, idea: &str) -> Vec<String> {
     }
     tags
 }
+
+/// A deterministic judge: drafts pass, the first tag candidates are kept, and a reel fits a role
+/// when they share a word. Lets the studio and the engine exercise the Jev paths offline.
+pub struct FakeJudge;
+
+#[async_trait]
+impl Judge for FakeJudge {
+    fn name(&self) -> &'static str {
+        "fake-judge"
+    }
+
+    async fn review_draft(
+        &self,
+        input: &DraftInput,
+    ) -> Result<reelearn_domain::ai::DraftAnswers, ProviderError> {
+        use reelearn_domain::ai::{DraftAnswers, QuestionAnswers};
+        let words = input.script.split_whitespace().count() as f64;
+        Ok(DraftAnswers {
+            grounded: 0.9,
+            on_topic: 0.92,
+            unsafe_content: 0.03,
+            caption_fits: if input.caption_line.is_some() {
+                0.85
+            } else {
+                1.0
+            },
+            clarity: if words > 20.0 { 3.4 } else { 2.2 },
+            hook: 2.8,
+            difficulty: 2.0,
+            question: input.question.as_ref().map(|_| QuestionAnswers {
+                key_correct: 0.9,
+                single_answer: 0.88,
+                distractors: 2.6,
+            }),
+            tags: input
+                .tag_candidates
+                .iter()
+                .enumerate()
+                .map(|(i, t)| (t.clone(), if i < 3 { 0.8 } else { 0.2 }))
+                .collect(),
+        })
+    }
+
+    async fn role_fit(&self, role: &str, reels: &[RoleReel]) -> Result<Vec<f32>, ProviderError> {
+        let role_words: Vec<String> = role.split_whitespace().map(|w| w.to_lowercase()).collect();
+        Ok(reels
+            .iter()
+            .map(|r| {
+                let text = format!("{} {} {}", r.title, r.topic, r.tags.join(" ")).to_lowercase();
+                if role_words
+                    .iter()
+                    .any(|w| w.len() > 3 && text.contains(w.as_str()))
+                {
+                    0.85
+                } else {
+                    0.45
+                }
+            })
+            .collect())
+    }
+}

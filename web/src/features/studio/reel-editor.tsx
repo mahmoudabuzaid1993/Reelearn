@@ -18,6 +18,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/toast";
 import { STATUS_TONE } from "@/features/library/library-view";
+import { QualityCard } from "@/features/ai/quality-badge";
 import { PhonePreview } from "./phone-preview";
 import { reelEditSchema, type ReelEditInput } from "./studio.schema";
 
@@ -124,6 +125,7 @@ function EditorForm({ reel, t, tl, locale }: { reel: Reel; t: ReturnType<typeof 
 
       <form onSubmit={save} noValidate className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_20rem]">
         <div className="flex flex-col gap-4">
+          {reel.status !== "published" ? <QualityCard quality={reel.quality} /> : null}
           <Card>
             <CardHeader title={t("script")} description={t("scriptHint")} />
             <CardBody className="flex flex-col gap-3">

@@ -11,8 +11,8 @@
 
 use crate::jobs::{JobError, JobOutcome};
 use crate::providers::{
-    real, vtt_from_script, CutRequest, ExtractInput, MediaResult, ProviderError, QuestionDraft,
-    RenderRequest, ScriptInput, TranscriptResult, TranscriptSegment,
+    real, vtt_from_script, CutRequest, DraftInput, ExtractInput, MediaResult, ProviderError,
+    QuestionDraft, RenderRequest, ScriptInput, TranscriptResult, TranscriptSegment, UsageEvent,
 };
 use crate::Ctx;
 use reelearn_api::s3::reel_media_key;
@@ -22,6 +22,19 @@ use reelearn_domain::{
     ExtractionStatus, GenStep, GenerationStyle, JobStatus, ReelKind, ReelStatus,
 };
 use uuid::Uuid;
+
+/// A unit-billed vendor call (a render, a voice track, a transcription): one usage line.
+fn meter_unit(ctx: &Ctx, slot: Option<&'static str>, capability: &'static str, ok: bool) {
+    if let Some(provider) = slot {
+        ctx.providers.meter.record(UsageEvent {
+            provider,
+            capability,
+            units: 1,
+            ok,
+            ..UsageEvent::default()
+        });
+    }
+}
 
 fn perr(e: ProviderError) -> JobError {
     if e.is_transient() {
@@ -150,12 +163,18 @@ pub async fn transcribe_podcast(
     let asset = media::get(tx.conn(), asset_id).await?;
     studio::set_extraction_status(tx.conn(), source_id, ExtractionStatus::Running, None).await?;
     let url = ctx.state.storage.presign_get(&asset.storage_key);
-    match ctx
+    let transcribed = ctx
         .providers
         .asr
         .transcribe(&url, source.language.as_deref())
-        .await
-    {
+        .await;
+    meter_unit(
+        ctx,
+        ctx.providers.slots.asr,
+        "transcribe",
+        transcribed.is_ok(),
+    );
+    match transcribed {
         Ok(TranscriptResult::Ready { segments, language }) => {
             let n =
                 finish_transcript(ctx, &mut tx, source_id, &segments, language.as_deref()).await?;
@@ -688,6 +707,7 @@ async fn question_step(
 ) -> Result<StepResult, JobError> {
     let tid = tx.tenant_id();
     let mut written = 0;
+    let mut drafts = Vec::new();
     for reel in job_reels(tx, job).await? {
         let script = reel.script.clone().unwrap_or_else(|| reel.title.clone());
         let q = ctx
@@ -708,8 +728,106 @@ async fn question_step(
         )
         .await?;
         written += 1;
+        drafts.push((reel, q));
     }
-    Ok(StepResult::Done(format!("{written} questions")))
+    let checked = quality_check(ctx, tx, job, &drafts).await?;
+    Ok(StepResult::Done(match checked {
+        Some(n) => format!(
+            "{written} questions, {n} drafts checked by {}",
+            ctx.providers.judge.name()
+        ),
+        None => format!("{written} questions"),
+    }))
+}
+
+/// TypeSafe Jev's check of each new draft: calibrated judgements in, a score, flags, a
+/// difficulty and a tag set out (rules in `reelearn_domain::ai::review`). Advisory and never
+/// fatal: a person still approves every reel, and a judge outage leaves a note, not a failure.
+async fn quality_check(
+    ctx: &Ctx,
+    tx: &mut TenantTx,
+    job: &studio::GenerationJobRow,
+    drafts: &[(reels::ReelRow, QuestionDraft)],
+) -> Result<Option<usize>, JobError> {
+    use reelearn_db::repos::{ai as ai_repo, tenants};
+    if drafts.is_empty() || ctx.providers.judge.name() == "off" {
+        return Ok(None);
+    }
+    let tid = tx.tenant_id();
+    let tenant = tenants::get(tx.conn(), tid).await?;
+    let settings = reelearn_db::settings::TenantSettings::from_json(&tenant.settings);
+    if !settings.ai.quality_check {
+        return Ok(None);
+    }
+    let source_text = studio::extraction(tx.conn(), job.source_id)
+        .await?
+        .map(|e| e.text)
+        .unwrap_or_default();
+    let vocabulary = if settings.ai.tag_check {
+        ai_repo::tag_vocabulary(tx.conn(), 20).await?
+    } else {
+        Vec::new()
+    };
+    let mut checked = 0;
+    for (reel, q) in drafts {
+        let topic = topics::get(tx.conn(), reel.topic_id).await?;
+        let writer_tags = ai_repo::reel_tags(tx.conn(), reel.id).await?;
+        let mut candidates = writer_tags.clone();
+        if settings.ai.tag_check {
+            for t in &vocabulary {
+                if !candidates.contains(t) {
+                    candidates.push(t.clone());
+                }
+            }
+        }
+        let input = DraftInput {
+            title: reel.title.clone(),
+            topic: topic.name,
+            language: reel.language.clone(),
+            script: reel.script.clone().unwrap_or_default(),
+            caption_line: None,
+            source_excerpt: source_text.clone(),
+            question: Some(q.clone()),
+            tag_candidates: candidates,
+        };
+        match ctx.providers.judge.review_draft(&input).await {
+            Ok(answers) => {
+                let r = reelearn_domain::ai::review(
+                    &answers,
+                    settings.ai.review_threshold,
+                    &writer_tags,
+                );
+                let doc = serde_json::json!({
+                    "status": "checked",
+                    "judge": ctx.providers.judge.name(),
+                    "score": r.score,
+                    "needs_attention": r.needs_attention,
+                    "flags": r.flags,
+                    "answers": answers,
+                    "checked_at": chrono::Utc::now(),
+                });
+                ai_repo::set_review(tx.conn(), reel.id, &doc, Some(i16::from(r.score))).await?;
+                let tags = if settings.ai.tag_check {
+                    r.tags
+                } else {
+                    writer_tags
+                };
+                reels::set_features(tx.conn(), reel.id, &tags, Some(r.difficulty)).await?;
+                checked += 1;
+            }
+            Err(e) => {
+                tracing::warn!(reel = %reel.id, error = %e, "quality check unavailable");
+                let doc = serde_json::json!({
+                    "status": "unavailable",
+                    "judge": ctx.providers.judge.name(),
+                    "message": e.to_string(),
+                    "checked_at": chrono::Utc::now(),
+                });
+                ai_repo::set_review(tx.conn(), reel.id, &doc, None).await?;
+            }
+        }
+    }
+    Ok(Some(checked))
 }
 
 async fn caption_step(
@@ -973,17 +1091,22 @@ async fn request_media(
                 presenter: reel.presenter.clone(),
                 audio_url,
             };
-            ctx.providers.video.render(req).await.map_err(perr)
+            let r = ctx.providers.video.render(req).await.map_err(perr);
+            meter_unit(ctx, ctx.providers.slots.video, "render", r.is_ok());
+            r
         }
         "voice" => {
             let voice_id = job.params["presenter"]["voice_id"]
                 .as_str()
                 .map(|s| s.to_string());
-            ctx.providers
+            let r = ctx
+                .providers
                 .voice
                 .synthesize(&script, &reel.language, voice_id.as_deref())
                 .await
-                .map_err(perr)
+                .map_err(perr);
+            meter_unit(ctx, ctx.providers.slots.voice, "voice", r.is_ok());
+            r
         }
         "cut" => {
             let source = studio::get_source(tx.conn(), job.source_id).await?;
@@ -1001,7 +1124,9 @@ async fn request_media(
                 start_ms: start,
                 end_ms: end,
             };
-            ctx.providers.video.cut(req).await.map_err(perr)
+            let r = ctx.providers.video.cut(req).await.map_err(perr);
+            meter_unit(ctx, ctx.providers.slots.video, "render", r.is_ok());
+            r
         }
         other => Err(JobError::Permanent(format!("unknown media step {other}"))),
     }

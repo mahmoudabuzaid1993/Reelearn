@@ -15,7 +15,11 @@ export function useSaveIntegration() {
   return useMutation({
     mutationFn: async ({ kind, body }: { kind: IntegrationKind; body: Record<string, unknown> }) =>
       unwrap(await api.PUT("/admin/integrations/{kind}", { params: { path: { kind } }, body })),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: keys.integrations }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.integrations });
+      // A company key changes which key each AI provider resolves to.
+      void qc.invalidateQueries({ queryKey: keys.ai });
+    },
   });
 }
 

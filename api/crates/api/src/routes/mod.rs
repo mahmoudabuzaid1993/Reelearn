@@ -7,6 +7,7 @@ pub mod learn;
 pub mod manager;
 pub mod me;
 pub mod people;
+pub mod platform;
 pub mod reels;
 pub mod reports;
 pub mod settings;
@@ -187,10 +188,19 @@ pub fn router(state: AppState) -> Router<AppState> {
         .merge(reports::routes())
         .merge(settings::routes())
         .merge(engine::admin_routes())
-        .route_layer(middleware::from_fn_with_state(state, roles::require_admin));
+        .route_layer(middleware::from_fn_with_state(
+            state.clone(),
+            roles::require_admin,
+        ));
+
+    let platform = platform::routes(state.clone()).route_layer(middleware::from_fn_with_state(
+        state.clone(),
+        roles::require_signed_in,
+    ));
 
     Router::new()
         .merge(public)
+        .merge(platform)
         .merge(signed_in)
         .merge(manager)
         .merge(sme)
